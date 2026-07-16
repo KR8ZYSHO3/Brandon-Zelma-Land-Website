@@ -120,3 +120,7 @@ Where customer forms go:
 | Listing inquiry | buyer | Admin → **Leads** |
 
 **Command** = overview / cheat sheet. **Leads** = the actual CRM table.
+
+### Listings use the same Redis
+
+Admin → **Listings** also saves to Upstash (key `bzl:listings`). You do **not** need a second database — the two env vars cover leads + inventory.

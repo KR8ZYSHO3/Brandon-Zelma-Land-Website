@@ -1,15 +1,39 @@
 import type { Listing, ListingStatus, MissionId } from "@/lib/types";
+import {
+  hasRedis,
+  redisGetJson,
+  redisSetJson,
+  storageLabel,
+  storageMode,
+  type DurableStorageMode,
+} from "@/lib/redis-kv";
 
 /**
- * Live listing inventory — only what Brandon adds via Admin.
- * Local: persists to data/listings.json
- * Vercel: in-memory unless you add a database later
+ * Live listing inventory — Admin → Listings.
+ * 1. Upstash Redis (same DB as leads — no second database)
+ * 2. Local data/listings.json
+ * 3. In-memory (unreliable on Vercel)
  */
 
+const REDIS_KEY = "bzl:listings";
 const globalStore = globalThis as unknown as { __bzlListings?: Listing[] };
+
+export type ListingsStorageMode = DurableStorageMode;
 
 function canUseFs(): boolean {
   return process.env.VERCEL !== "1" && process.env.USE_MEMORY_LISTINGS !== "1";
+}
+
+export function getListingsStorageMode(): ListingsStorageMode {
+  return storageMode(canUseFs());
+}
+
+export function getListingsStorageLabel(): string {
+  return storageLabel(getListingsStorageMode(), "data/listings.json");
+}
+
+export function listingsAreDurable(): boolean {
+  return getListingsStorageMode() !== "memory";
 }
 
 function memory(): Listing[] {
@@ -48,17 +72,27 @@ async function writeToFs(listings: Listing[]): Promise<void> {
 }
 
 export async function readListings(): Promise<Listing[]> {
+  if (hasRedis()) {
+    const fromRedis = await redisGetJson<Listing>(REDIS_KEY);
+    if (fromRedis) {
+      globalStore.__bzlListings = fromRedis;
+      return fromRedis;
+    }
+  }
+
   const fromDisk = await readFromFs();
   if (fromDisk) {
     globalStore.__bzlListings = fromDisk;
     return fromDisk;
   }
+
   return memory();
 }
 
 export async function writeListings(listings: Listing[]): Promise<void> {
   globalStore.__bzlListings = listings;
-  await writeToFs(listings);
+  const ok = await redisSetJson(REDIS_KEY, listings);
+  if (!ok) await writeToFs(listings);
 }
 
 export async function getActiveListings(): Promise<Listing[]> {
@@ -86,9 +120,7 @@ export async function getListingsByMission(
   mission: string,
 ): Promise<Listing[]> {
   const active = await getActiveListings();
-  return active.filter((l) =>
-    l.missions.includes(mission as MissionId),
-  );
+  return active.filter((l) => l.missions.includes(mission as MissionId));
 }
 
 export { formatPrice, pricePerAcre } from "@/lib/format";
