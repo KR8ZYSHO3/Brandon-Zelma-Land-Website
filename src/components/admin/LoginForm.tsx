@@ -73,14 +73,6 @@ export function LoginForm() {
       >
         {loading ? "Checking…" : "Enter"}
       </button>
-      <p className="text-xs text-muted">
-        Login: <code className="rounded bg-limestone px-1">admin</code> /{" "}
-        <code className="rounded bg-limestone px-1">zelma</code>
-        . Change later in{" "}
-        <code className="rounded bg-limestone px-1">.env.local</code> (
-        <code className="rounded bg-limestone px-1">ADMIN_USERNAME</code>,{" "}
-        <code className="rounded bg-limestone px-1">ADMIN_PASSWORD</code>).
-      </p>
     </form>
   );
 }
