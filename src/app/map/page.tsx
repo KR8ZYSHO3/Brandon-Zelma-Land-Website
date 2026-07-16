@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
 import { getActiveListings, formatPrice } from "@/lib/listings-store";
 import { getActiveMarkets, getServiceArea } from "@/lib/markets-store";
 
@@ -10,8 +11,10 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function MapPage() {
+  noStore();
   const listings = (await getActiveListings()).filter(
     (l) => l.status === "active",
   );

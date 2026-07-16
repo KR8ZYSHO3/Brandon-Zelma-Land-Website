@@ -117,6 +117,12 @@ function mergeWithCatalog(stored: ServiceAreaConfig): ServiceAreaConfig {
 }
 
 export async function getServiceArea(): Promise<ServiceAreaConfig> {
+  try {
+    const { unstable_noStore } = await import("next/cache");
+    unstable_noStore();
+  } catch {
+    /* non-Next context */
+  }
   // Always prefer Redis so map/admin share the same state on Vercel
   if (hasRedis()) {
     const fromRedis = await redisGetObject<ServiceAreaConfig>(REDIS_KEY);
