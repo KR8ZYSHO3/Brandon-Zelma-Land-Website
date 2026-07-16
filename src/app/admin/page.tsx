@@ -23,7 +23,7 @@ export default async function AdminDashboardPage() {
     {
       label: "Active listings",
       value: String(s.activeListings),
-      tip: "Live in the demo book",
+      tip: "Properties currently live",
     },
     {
       label: "Pipeline value",
@@ -36,9 +36,9 @@ export default async function AdminDashboardPage() {
       tip: "Your actives only",
     },
     {
-      label: "Closed vol (demo)",
+      label: "Closed volume",
       value: formatPrice(s.closedVolume),
-      tip: "Sample closed deals data",
+      tip: "From closed deals you log",
     },
   ];
 

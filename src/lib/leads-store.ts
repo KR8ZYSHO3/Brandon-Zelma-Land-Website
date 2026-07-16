@@ -3,7 +3,7 @@ import type { Lead } from "@/lib/types";
 /**
  * Lead storage:
  * - Local/dev: writes data/leads.json when filesystem is writable
- * - Vercel/serverless: in-memory (resets on cold start) — fine for demo;
+ * - Vercel/serverless: in-memory (resets on cold start);
  *   upgrade to Supabase/Vercel KV later for production persistence
  */
 

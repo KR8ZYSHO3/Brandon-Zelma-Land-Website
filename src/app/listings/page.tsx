@@ -21,11 +21,25 @@ export default function ListingsPage() {
         Brandon&apos;s walk notes. Prices and availability change — confirm
         details before you drive.
       </p>
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {listings.map((l) => (
-          <ListingCard key={l.id} listing={l} />
-        ))}
-      </div>
+      {listings.length === 0 ? (
+        <p className="mt-10 rounded-2xl border border-line bg-paper p-8 text-center text-sm text-muted">
+          No active listings right now. Start a{" "}
+          <a href="/find" className="font-semibold text-forest hover:underline">
+            land mission
+          </a>{" "}
+          or{" "}
+          <a href="/contact" className="font-semibold text-forest hover:underline">
+            contact Brandon
+          </a>
+          .
+        </p>
+      ) : (
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {listings.map((l) => (
+            <ListingCard key={l.id} listing={l} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

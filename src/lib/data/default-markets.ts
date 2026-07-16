@@ -309,7 +309,7 @@ export const REGION_PRESETS: {
     exclusive: true,
   },
   {
-    id: "ohio-wide-sample",
+    id: "ohio-wide",
     label: "Broader Ohio",
     description: "Southern set + Guernsey, Muskingum, Licking, Fairfield, Knox, Coshocton",
     regionLabel: "Ohio land markets",
@@ -365,7 +365,7 @@ export const REGION_PRESETS: {
   {
     id: "all-catalog",
     label: "Everything in catalog",
-    description: "Turn on every built-in market (OH, WV, KY, IN, PA samples)",
+    description: "Turn on every built-in market (OH, WV, KY, IN, PA)",
     regionLabel: "Multi-state land coverage",
     activateSlugs: MARKET_CATALOG.map((m) => m.slug),
     exclusive: true,

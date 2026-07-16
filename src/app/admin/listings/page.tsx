@@ -14,8 +14,8 @@ export default async function AdminListingsPage() {
         Listings ops
       </h1>
       <p className="mt-1 text-sm text-muted">
-        Demo book lives in <code>src/lib/data/listings.ts</code>. Swap to
-        Supabase when ready for live CMS edits.
+        Listing inventory is empty until properties are added. Manage via your
+        data store / CMS as you go live.
       </p>
 
       <div className="mt-8 overflow-x-auto rounded-2xl border border-line bg-paper">

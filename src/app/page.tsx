@@ -136,11 +136,26 @@ export default function HomePage() {
               All listings →
             </Link>
           </div>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            {featured.map((l) => (
-              <ListingCard key={l.id} listing={l} />
-            ))}
-          </div>
+          {featured.length === 0 ? (
+            <div className="mt-8 surface-card p-8 text-center">
+              <p className="text-sm text-muted">
+                New listings will appear here as they go live. Start a land
+                mission or talk to Brandon about selling.
+              </p>
+              <div className="mt-4 flex flex-wrap justify-center gap-3">
+                <ButtonLink href="/find">Find land</ButtonLink>
+                <ButtonLink href="/sell" variant="secondary">
+                  Sell land
+                </ButtonLink>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-8 grid gap-6 md:grid-cols-3">
+              {featured.map((l) => (
+                <ListingCard key={l.id} listing={l} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

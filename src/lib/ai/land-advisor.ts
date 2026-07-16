@@ -41,7 +41,7 @@ export function freeLandAdvisor(
     }
     if (/listing|blurb|description|dossier/.test(q)) {
       const l = listings[0];
-      if (!l) return "No active listings in the demo book to draft from.";
+      if (!l) return "No active listings yet to draft from — add a listing first.";
       return `Draft listing blurb for ${l.title}:\n\n${l.story}\n\nBrandon’s notes angle:\n${l.brandonNotes}\n\nCTA: Call/text for a walk. Equal housing. Info not guaranteed.`;
     }
     if (/lead|follow.?up|reply|text|email response/.test(q)) {
@@ -99,7 +99,7 @@ export function freeLandAdvisor(
   }
 
   if (/listing|available|for sale|show me|what.*have/.test(q)) {
-    if (!listings.length) return "No active demo listings right now — leave a mission on /find.";
+    if (!listings.length) return "No active listings right now — leave a mission on /find so Brandon can match you when inventory is up.";
     return `Active highlights:\n${listings
       .map(
         (l) =>

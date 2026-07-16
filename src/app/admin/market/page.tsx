@@ -31,7 +31,7 @@ export default async function AdminMarketPage() {
         </div>
         <div className="rounded-2xl border border-line bg-paper p-4">
           <p className="text-xs uppercase tracking-wider text-moss">
-            Closed avg $/ac (demo)
+            Closed avg $/ac
           </p>
           <p className="font-display text-2xl font-semibold">
             {formatPrice(s.avgClosedPpa)}
@@ -65,6 +65,13 @@ export default async function AdminMarketPage() {
               </tr>
             </thead>
             <tbody>
+              {MARKET_COMPS.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-6 text-center text-muted">
+                    No comps yet — log sales as you learn the market.
+                  </td>
+                </tr>
+              )}
               {MARKET_COMPS.map((c) => (
                 <tr key={c.id} className="border-b border-line/70">
                   <td className="px-3 py-2">{c.county}</td>
@@ -79,17 +86,18 @@ export default async function AdminMarketPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-xs text-muted">
-          Edit seed data in <code>src/lib/data/market.ts</code> or connect
-          Supabase later for live entry.
-        </p>
       </section>
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-semibold text-forest">
-          Your closed book (demo)
+          Your closed book
         </h2>
         <ul className="mt-3 space-y-2">
+          {CLOSED_DEALS.length === 0 && (
+            <li className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-muted">
+              No closed deals logged yet.
+            </li>
+          )}
           {CLOSED_DEALS.map((d) => (
             <li
               key={d.id}

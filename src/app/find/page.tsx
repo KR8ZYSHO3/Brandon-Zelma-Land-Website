@@ -81,8 +81,8 @@ export default async function FindPage({ searchParams }: Props) {
             <div className="mt-6 grid gap-4">
               {matched.length === 0 ? (
                 <p className="text-sm text-muted">
-                  No live matches in the demo book for this mission — save your
-                  profile anyway so Brandon can prospect.
+                  No live matches for this mission yet — save your profile so
+                  Brandon can prospect.
                 </p>
               ) : (
                 matched.map((l) => <ListingCard key={l.id} listing={l} />)
