@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LeadType, MissionId } from "@/lib/types";
 import { MISSIONS, FOCUS_COUNTIES } from "@/lib/types";
 
@@ -19,6 +19,7 @@ export function LeadForm({
   readinessScore?: number;
   extraPayload?: Record<string, unknown>;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">(
     "idle",
   );
@@ -28,9 +29,11 @@ export function LeadForm({
   );
 
   useEffect(() => {
+    let cancelled = false;
     fetch("/api/markets")
       .then((r) => r.json())
       .then((data) => {
+        if (cancelled) return;
         const active = (data.activeMarkets || []) as {
           slug: string;
           name: string;
@@ -49,25 +52,34 @@ export function LeadForm({
       .catch(() => {
         /* keep defaults */
       });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Capture form before any await — e.currentTarget is null after async work
-    const form = e.currentTarget;
+    const form = formRef.current;
+    if (!form) {
+      setError("Form not ready — please try again.");
+      setStatus("error");
+      return;
+    }
+
     setStatus("loading");
     setError("");
+
     const fd = new FormData(form);
-    const counties = fd.getAll("counties").map(String);
+    const selectedCounties = fd.getAll("counties").map(String);
 
     const body = {
       type,
-      name: String(fd.get("name") || ""),
-      email: String(fd.get("email") || ""),
-      phone: String(fd.get("phone") || ""),
+      name: String(fd.get("name") || "").trim(),
+      email: String(fd.get("email") || "").trim(),
+      phone: String(fd.get("phone") || "").trim() || undefined,
       source,
       mission: String(fd.get("mission") || defaultMission || "") || undefined,
-      counties,
+      counties: selectedCounties,
       budgetMax: fd.get("budgetMax") ? Number(fd.get("budgetMax")) : undefined,
       acresMin: fd.get("acresMin") ? Number(fd.get("acresMin")) : undefined,
       timeline: String(fd.get("timeline") || "") || undefined,
@@ -84,8 +96,11 @@ export function LeadForm({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Something went wrong");
+        throw new Error(
+          (data as { error?: string }).error || "Something went wrong",
+        );
       }
+      // Success UI replaces the form — no form.reset() (breaks after await)
       setStatus("done");
     } catch (err) {
       setStatus("error");
@@ -111,19 +126,34 @@ export function LeadForm({
     "mt-1 w-full rounded-xl border border-line bg-limestone px-3 py-2 text-charcoal outline-none focus:border-moss";
 
   return (
-    <form onSubmit={onSubmit} className="surface-card space-y-4 p-6">
+    <form
+      ref={formRef}
+      onSubmit={onSubmit}
+      className="surface-card space-y-4 p-6"
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm">
           <span className="font-medium text-charcoal">Name</span>
-          <input name="name" required className={field} />
+          <input name="name" required autoComplete="name" className={field} />
         </label>
         <label className="block text-sm">
           <span className="font-medium text-charcoal">Email</span>
-          <input name="email" type="email" required className={field} />
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            className={field}
+          />
         </label>
         <label className="block text-sm">
           <span className="font-medium text-charcoal">Phone</span>
-          <input name="phone" type="tel" className={field} />
+          <input
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            className={field}
+          />
         </label>
         <label className="block text-sm">
           <span className="font-medium text-charcoal">Timeline</span>
@@ -208,7 +238,11 @@ export function LeadForm({
         disabled={status === "loading"}
         className="w-full rounded-full btn-action px-5 py-3 text-sm font-semibold transition disabled:opacity-60"
       >
-        {status === "loading" ? "Sending…" : type === "seller" ? "Request seller strategy" : "Save my land mission"}
+        {status === "loading"
+          ? "Sending…"
+          : type === "seller"
+            ? "Request seller strategy"
+            : "Save my land mission"}
       </button>
     </form>
   );
