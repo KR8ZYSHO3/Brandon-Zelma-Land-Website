@@ -43,8 +43,22 @@ const MODULES = [
   {
     href: "/admin/business-plan",
     name: "Business Plan",
-    plain: "Mission statement, growth plan, financial targets, clickable links.",
+    plain:
+      "Mission, growth plan, financials, hosting/Cloudflare/domain costs, best stack options.",
     when: "Once thoroughly, then quarterly — or when stuck.",
+  },
+  {
+    href: "/admin/seo",
+    name: "SEO / AI SEO",
+    plain:
+      "Configure titles, AI summary (llms.txt), crawlers, Search Console — classic + ChatGPT SEO.",
+    when: "At launch, then monthly content + crawler review.",
+  },
+  {
+    href: "/admin/security",
+    name: "Security",
+    plain: "Privacy, anti-scrape reality, headers, Cloudflare bots, hardening checklist.",
+    when: "At launch and when opening a custom domain.",
   },
   {
     href: "/admin/business-dev",

@@ -86,7 +86,10 @@ export function SiteFooter() {
             appraisals, legal advice, or income guarantees.
           </p>
           <p className="text-xs text-muted/70">
-            © {new Date().getFullYear()} Brandon Zelma Land
+            © {new Date().getFullYear()} Brandon Zelma Land ·{" "}
+            <Link href="/privacy" className="hover:text-charcoal underline">
+              Privacy
+            </Link>
           </p>
         </div>
       </div>

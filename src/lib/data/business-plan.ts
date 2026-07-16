@@ -141,11 +141,51 @@ export const FINANCIAL_PLAN = {
     },
   ],
   budgetMonthly: [
-    { item: "Domain + hosting", amount: "$0–$25", note: "Vercel free tier possible" },
-    { item: "Phone / data / fuel buffer", amount: "your existing ops", note: "Track per deal" },
-    { item: "Paid ads (after tracking)", amount: "$0–$600", note: "Only with ROI" },
-    { item: "Tools (email, optional AI key)", amount: "$0–$30", note: "Land Scout works free offline" },
-    { item: "Education (broker path)", amount: "lump sum when ready", note: "Use GI Bill / VR&E if eligible" },
+    {
+      item: "Domain name",
+      amount: "~$1 / mo ($10–$15 / yr)",
+      note: "Cloudflare Registrar or Porkbun — see Tech stack table below",
+    },
+    {
+      item: "Hosting (Vercel Hobby)",
+      amount: "$0",
+      note: "Current stack; Pro ~$20/mo only if you outgrow free",
+    },
+    {
+      item: "Database (Upstash Redis)",
+      amount: "$0 free tier",
+      note: "Leads + listings + service area + SEO config",
+    },
+    {
+      item: "Cloudflare (DNS/CDN/bots)",
+      amount: "$0 free",
+      note: "Optional Pro ~$20/mo; free Bot Fight Mode is enough early",
+    },
+    {
+      item: "Brand email",
+      amount: "$0–$7",
+      note: "CF Email Routing free, or Google Workspace ~$7/user",
+    },
+    {
+      item: "Phone / data / fuel buffer",
+      amount: "your existing ops",
+      note: "Track per deal",
+    },
+    {
+      item: "Paid ads (after tracking)",
+      amount: "$0–$600",
+      note: "Only with ROI",
+    },
+    {
+      item: "Optional paid AI API",
+      amount: "$0–$20",
+      note: "Land Scout works free without a key",
+    },
+    {
+      item: "Education (broker path)",
+      amount: "lump sum when ready",
+      note: "Use GI Bill / VR&E if eligible",
+    },
   ],
   independenceEconomics: [
     "Under own brokerage, you keep more of each fee (after overhead).",

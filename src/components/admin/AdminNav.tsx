@@ -12,6 +12,8 @@ const LINKS = [
   { href: "/admin/service-area", label: "Service Area" },
   { href: "/admin/market", label: "Market" },
   { href: "/admin/business-plan", label: "Business Plan" },
+  { href: "/admin/seo", label: "SEO / AI SEO" },
+  { href: "/admin/security", label: "Security" },
   { href: "/admin/business-dev", label: "VA Path" },
   { href: "/admin/va-loans", label: "VA Loans" },
   { href: "/admin/marketing", label: "Marketing" },

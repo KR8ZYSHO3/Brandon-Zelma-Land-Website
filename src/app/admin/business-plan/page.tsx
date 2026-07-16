@@ -8,6 +8,13 @@ import {
   FINANCIAL_PLAN,
   MISSION_STATEMENT,
 } from "@/lib/data/business-plan";
+import {
+  CLOUDFLARE_DATABASE_FAQ,
+  DOMAIN_CLOUDFLARE_STEPS,
+  SETUP_PATHS,
+  TECH_COST_ROWS,
+  TECH_STACK_RECOMMENDED,
+} from "@/lib/data/tech-stack-costs";
 
 export default async function AdminBusinessPlanPage() {
   if (!(await isAdminAuthenticated())) redirect("/admin/login");
@@ -154,6 +161,118 @@ export default async function AdminBusinessPlanPage() {
             <li key={x}>{x}</li>
           ))}
         </ul>
+
+        {/* TECH STACK / HOSTING */}
+        <div className="mt-10 surface-elevated p-6">
+          <p className="section-kicker">Website & cloud costs</p>
+          <h3 className="mt-1 font-display text-xl font-semibold text-forest">
+            {TECH_STACK_RECOMMENDED.title}
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            {TECH_STACK_RECOMMENDED.summary}
+          </p>
+          <p className="mt-2 text-sm font-semibold text-forest">
+            Typical: {TECH_STACK_RECOMMENDED.monthlyTotal} ·{" "}
+            {TECH_STACK_RECOMMENDED.yearlyTotal}
+          </p>
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-paper">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-line bg-limestone/50 text-xs uppercase text-muted">
+                <tr>
+                  <th className="px-3 py-2">Item</th>
+                  <th className="px-3 py-2">Option</th>
+                  <th className="px-3 py-2">Cost</th>
+                  <th className="px-3 py-2">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {TECH_COST_ROWS.map((r) => (
+                  <tr key={r.item + r.option} className="border-b border-line/70 align-top">
+                    <td className="px-3 py-2 font-medium">
+                      {r.item}
+                      {r.recommended ? (
+                        <span className="ml-1 text-[10px] font-bold text-moss">
+                          REC
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2 text-muted">{r.option}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{r.cost}</td>
+                    <td className="px-3 py-2 text-xs text-muted">
+                      {r.bestFor}. {r.notes}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="mt-6 surface-card p-5">
+          <h3 className="font-display text-lg font-semibold text-forest">
+            {CLOUDFLARE_DATABASE_FAQ.title}
+          </h3>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted">
+            {CLOUDFLARE_DATABASE_FAQ.answer.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="text-xs uppercase text-muted">
+                <tr>
+                  <th className="px-2 py-1">Product</th>
+                  <th className="px-2 py-1">Role</th>
+                  <th className="px-2 py-1">Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {CLOUDFLARE_DATABASE_FAQ.comparison.map((c) => (
+                  <tr key={c.product} className="border-t border-line">
+                    <td className="px-2 py-2 font-medium">{c.product}</td>
+                    <td className="px-2 py-2 text-muted">{c.role}</td>
+                    <td className="px-2 py-2">{c.cost}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {SETUP_PATHS.map((p) => (
+            <div key={p.name} className="surface-card p-4">
+              <p className="text-sm font-semibold text-forest">{p.name}</p>
+              <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-muted">
+                {p.steps.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 surface-card p-5">
+          <h3 className="font-display text-lg font-semibold text-forest">
+            Domain + Cloudflare → Vercel (checklist)
+          </h3>
+          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted">
+            {DOMAIN_CLOUDFLARE_STEPS.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ol>
+          <p className="mt-3 text-sm text-muted">
+            Also see{" "}
+            <Link href="/admin/seo" className="text-forest underline">
+              SEO & AI SEO
+            </Link>{" "}
+            and{" "}
+            <Link href="/admin/security" className="text-forest underline">
+              Security & privacy
+            </Link>
+            .
+          </p>
+        </div>
       </section>
 
       {/* LINKS */}
