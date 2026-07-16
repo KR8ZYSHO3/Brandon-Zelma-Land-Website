@@ -18,7 +18,7 @@ export async function runLandAi(opts: {
 
   if (!key) {
     return {
-      reply: freeLandAdvisor(opts.message, opts.mode),
+      reply: await freeLandAdvisor(opts.message, opts.mode),
       engine: "free-local",
     };
   }
@@ -53,7 +53,7 @@ export async function runLandAi(opts: {
       console.error("xAI error", res.status, errText);
       return {
         reply:
-          freeLandAdvisor(opts.message, opts.mode) +
+          (await freeLandAdvisor(opts.message, opts.mode)) +
           "\n\n_(Cloud AI unavailable — answered with free Land Scout.)_",
         engine: "free-local",
       };
@@ -64,13 +64,13 @@ export async function runLandAi(opts: {
     };
     const reply =
       data.choices?.[0]?.message?.content?.trim() ||
-      freeLandAdvisor(opts.message, opts.mode);
+      (await freeLandAdvisor(opts.message, opts.mode));
 
     return { reply, engine: "xai" };
   } catch (e) {
     console.error(e);
     return {
-      reply: freeLandAdvisor(opts.message, opts.mode),
+      reply: await freeLandAdvisor(opts.message, opts.mode),
       engine: "free-local",
     };
   }

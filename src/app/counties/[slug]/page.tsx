@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { getListingsByCounty } from "@/lib/data/listings";
+import { getListingsByCounty } from "@/lib/listings-store";
 import { getActiveMarkets, getServiceArea } from "@/lib/markets-store";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { MARKET_CATALOG } from "@/lib/data/default-markets";
@@ -38,7 +38,7 @@ export default async function CountyPage({ params }: Props) {
   const active = await getActiveMarkets();
   const isActive = active.some((m) => m.slug === slug);
   const nameShort = county.name.replace(" County", "");
-  const listings = getListingsByCounty(nameShort);
+  const listings = await getListingsByCounty(nameShort);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">

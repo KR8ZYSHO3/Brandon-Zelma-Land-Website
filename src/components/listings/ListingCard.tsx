@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Listing } from "@/lib/types";
-import { formatPrice, pricePerAcre } from "@/lib/data/listings";
+import { formatPrice, pricePerAcre } from "@/lib/format";
 import { MISSIONS } from "@/lib/types";
 
 export function ListingCard({ listing }: { listing: Listing }) {

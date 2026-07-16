@@ -1,4 +1,4 @@
-import { getActiveListings, formatPrice } from "@/lib/data/listings";
+import { formatPrice, getActiveListings } from "@/lib/listings-store";
 import { MISSIONS, FOCUS_COUNTIES } from "@/lib/types";
 // FOCUS_COUNTIES used as offline fallback; live map uses admin service area
 import { MISSION_STATEMENT, BUSINESS_PLAN } from "@/lib/data/business-plan";
@@ -10,13 +10,15 @@ export interface ChatMessage {
   content: string;
 }
 
-/** Free offline Land Scout — always works with no API key. */
-export function freeLandAdvisor(
+/** Free offline Land Scout — always works with no API key. Uses live inventory. */
+export async function freeLandAdvisor(
   userMessage: string,
   mode: AiMode,
-): string {
+): Promise<string> {
   const q = userMessage.toLowerCase().trim();
-  const listings = getActiveListings().filter((l) => l.status === "active");
+  const listings = (await getActiveListings()).filter(
+    (l) => l.status === "active",
+  );
 
   if (!q) {
     return mode === "admin"

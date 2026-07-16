@@ -1,6 +1,6 @@
 import { readLeads } from "@/lib/leads-store";
-import { getActiveListings, LISTINGS } from "@/lib/data/listings";
-import { CLOSED_DEALS, MARKET_COMPS } from "@/lib/data/market";
+import { getActiveListings, readListings } from "@/lib/listings-store";
+import { readClosedDeals, readComps } from "@/lib/market-book-store";
 import { scoreLabel } from "@/lib/scoring";
 import type { Lead, MissionId } from "@/lib/types";
 
@@ -17,7 +17,12 @@ export interface DashboardStats {
   sourceBreakdown: { source: string; count: number }[];
   missionDemand: { mission: string; count: number }[];
   countyDemand: { county: string; count: number }[];
-  demandSupplyGaps: { county: string; demand: number; supply: number; gap: number }[];
+  demandSupplyGaps: {
+    county: string;
+    demand: number;
+    supply: number;
+    gap: number;
+  }[];
   stageBreakdown: { stage: string; count: number }[];
   decisionPrompts: string[];
   listingPerformance: {
@@ -44,7 +49,10 @@ function startOfMonth(): Date {
   return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
-function countBy<T>(items: T[], keyFn: (i: T) => string): { key: string; count: number }[] {
+function countBy<T>(
+  items: T[],
+  keyFn: (i: T) => string,
+): { key: string; count: number }[] {
   const map = new Map<string, number>();
   for (const item of items) {
     const k = keyFn(item) || "unknown";
@@ -57,9 +65,12 @@ function countBy<T>(items: T[], keyFn: (i: T) => string): { key: string; count: 
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   const leads = await readLeads();
+  const allListings = await readListings();
+  const active = await getActiveListings();
+  const closed = await readClosedDeals();
+  const comps = await readComps();
   const week = startOfWeek().getTime();
   const month = startOfMonth().getTime();
-  const active = getActiveListings().filter((l) => l.status === "active");
 
   const buyerLeads = leads.filter((l) => l.type === "buyer");
   const sellerLeads = leads.filter((l) => l.type === "seller");
@@ -87,8 +98,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }));
 
   const supplyByCounty = countBy(active, (l) => l.county);
-  const demandMap = new Map(countyDemand.map((c) => [c.county.toLowerCase(), c.count]));
-  const supplyMap = new Map(supplyByCounty.map((c) => [c.key.toLowerCase(), c.count]));
+  const demandMap = new Map(
+    countyDemand.map((c) => [c.county.toLowerCase(), c.count]),
+  );
+  const supplyMap = new Map(
+    supplyByCounty.map((c) => [c.key.toLowerCase(), c.count]),
+  );
   const allCounties = new Set([...demandMap.keys(), ...supplyMap.keys()]);
   const demandSupplyGaps = [...allCounties]
     .filter((c) => c !== "unspecified" && c !== "unknown")
@@ -115,22 +130,24 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       ? active.reduce((s, l) => s + l.price / l.acres, 0) / active.length
       : 0;
 
-  const listingPerformance = LISTINGS.map((l) => ({
-    slug: l.slug,
-    title: l.title,
-    views: l.views,
-    ctaClicks: l.ctaClicks,
-    conversion: l.views > 0 ? l.ctaClicks / l.views : 0,
-  })).sort((a, b) => b.views - a.views);
+  const listingPerformance = allListings
+    .map((l) => ({
+      slug: l.slug,
+      title: l.title,
+      views: l.views,
+      ctaClicks: l.ctaClicks,
+      conversion: l.views > 0 ? l.ctaClicks / l.views : 0,
+    }))
+    .sort((a, b) => b.views - a.views);
 
-  const closedVolume = CLOSED_DEALS.reduce((s, d) => s + d.price, 0);
+  const closedVolume = closed.reduce((s, d) => s + d.price, 0);
   const avgClosedPpa =
-    CLOSED_DEALS.length > 0
-      ? CLOSED_DEALS.reduce((s, d) => s + d.pricePerAcre, 0) / CLOSED_DEALS.length
+    closed.length > 0
+      ? closed.reduce((s, d) => s + d.pricePerAcre, 0) / closed.length
       : 0;
 
   const compsByCountyMap = new Map<string, { sum: number; n: number }>();
-  for (const c of MARKET_COMPS) {
+  for (const c of comps) {
     const cur = compsByCountyMap.get(c.county) || { sum: 0, n: 0 };
     cur.sum += c.pricePerAcre;
     cur.n += 1;
@@ -156,9 +173,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     buyerLeads: buyerLeads.length,
     sellerLeads: sellerLeads.length,
     hotLeads,
-    leadsThisWeek: leads.filter((l) => new Date(l.createdAt).getTime() >= week).length,
-    leadsThisMonth: leads.filter((l) => new Date(l.createdAt).getTime() >= month).length,
-    activeListings: active.length,
+    leadsThisWeek: leads.filter((l) => new Date(l.createdAt).getTime() >= week)
+      .length,
+    leadsThisMonth: leads.filter(
+      (l) => new Date(l.createdAt).getTime() >= month,
+    ).length,
+    activeListings: active.filter((l) => l.status === "active").length,
     pipelineValue,
     avgPricePerAcreBook,
     sourceBreakdown,
@@ -178,7 +198,12 @@ function buildPrompts(input: {
   leads: Lead[];
   sellerLeads: Lead[];
   buyerLeads: Lead[];
-  demandSupplyGaps: { county: string; demand: number; supply: number; gap: number }[];
+  demandSupplyGaps: {
+    county: string;
+    demand: number;
+    supply: number;
+    gap: number;
+  }[];
   hotLeads: number;
   activeCount: number;
 }): string[] {
@@ -190,20 +215,29 @@ function buildPrompts(input: {
     );
   }
 
-  if (input.sellerLeads.length < input.buyerLeads.length / 2 && input.buyerLeads.length >= 2) {
+  if (
+    input.sellerLeads.length < input.buyerLeads.length / 2 &&
+    input.buyerLeads.length >= 2
+  ) {
     prompts.push(
       "Buyer demand outpaces seller leads — push Sell Land content and sphere calls this week.",
     );
   }
 
-  const topGap = input.demandSupplyGaps.find((g) => g.gap > 0 && g.supply === 0);
+  const topGap = input.demandSupplyGaps.find(
+    (g) => g.gap > 0 && g.supply === 0,
+  );
   if (topGap) {
     prompts.push(
       `Buyers want ${topGap.county} land but you have no active listing there — prospect FSBO / sphere.`,
     );
   }
 
-  if (input.activeCount < 3) {
+  if (input.activeCount < 1) {
+    prompts.push(
+      "No live listings yet — add real inventory in Admin → Listings, or book a seller appointment.",
+    );
+  } else if (input.activeCount < 3) {
     prompts.push(
       "Listing inventory is thin. Prioritize seller appointments — inventory fuels the whole machine.",
     );
@@ -211,19 +245,23 @@ function buildPrompts(input: {
 
   if (input.leads.length === 0) {
     prompts.push(
-      "No leads yet — share Mission Lab and Sell Land links, and seed traffic from Instagram/YouTube.",
+      "No leads yet — share Mission Lab and Sell Land links, and post content.",
     );
   }
 
-  const huntDemand = input.buyerLeads.filter((l) => l.mission === ("hunt" as MissionId)).length;
+  const huntDemand = input.buyerLeads.filter(
+    (l) => l.mission === ("hunt" as MissionId),
+  ).length;
   if (huntDemand >= 2) {
     prompts.push(
-      "Hunt mission is converting — film one ridge-walk Short this week and embed on a hunt-tagged listing.",
+      "Hunt mission is converting — film one ridge-walk Short this week when you have a hunt-tagged listing.",
     );
   }
 
   if (prompts.length === 0) {
-    prompts.push("Book looks balanced. Double down on content in your top demand county.");
+    prompts.push(
+      "Book looks balanced. Double down on content in your top demand county.",
+    );
   }
 
   return prompts.slice(0, 5);

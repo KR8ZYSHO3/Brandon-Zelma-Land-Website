@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getActiveListings, formatPrice } from "@/lib/data/listings";
+import { getActiveListings, formatPrice } from "@/lib/listings-store";
 import { getActiveMarkets, getServiceArea } from "@/lib/markets-store";
 
 export const metadata: Metadata = {
@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function MapPage() {
-  const listings = getActiveListings().filter((l) => l.status === "active");
+  const listings = (await getActiveListings()).filter(
+    (l) => l.status === "active",
+  );
   const markets = await getActiveMarkets();
   const area = await getServiceArea();
 

@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { getActiveListings } from "@/lib/data/listings";
+import { getActiveListings } from "@/lib/listings-store";
 
 export const metadata: Metadata = {
   title: "Land for Sale",
   description:
-    "Southeast Ohio land listings with field-report dossiers from Brandon Zelma, Buckeye Land Sales.",
+    "Live land listings with field-report dossiers from Brandon Zelma, Buckeye Land Sales.",
 };
 
-export default function ListingsPage() {
-  const listings = getActiveListings();
+export const dynamic = "force-dynamic";
+
+export default async function ListingsPage() {
+  const listings = await getActiveListings();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -17,9 +19,8 @@ export default function ListingsPage() {
         Land for sale
       </h1>
       <p className="mt-3 max-w-2xl text-muted">
-        Every tract gets a dossier: story, access, soils notes, wildlife, and
-        Brandon&apos;s walk notes. Prices and availability change — confirm
-        details before you drive.
+        Live inventory only. Every tract gets a dossier: story, access, soils
+        notes, wildlife, and Brandon&apos;s walk notes.
       </p>
       {listings.length === 0 ? (
         <p className="mt-10 rounded-2xl border border-line bg-paper p-8 text-center text-sm text-muted">
@@ -28,7 +29,10 @@ export default function ListingsPage() {
             land mission
           </a>{" "}
           or{" "}
-          <a href="/contact" className="font-semibold text-forest hover:underline">
+          <a
+            href="/contact"
+            className="font-semibold text-forest hover:underline"
+          >
             contact Brandon
           </a>
           .

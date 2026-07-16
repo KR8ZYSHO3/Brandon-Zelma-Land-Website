@@ -5,20 +5,23 @@ import { LeadForm } from "@/components/forms/LeadForm";
 import {
   formatPrice,
   getListingBySlug,
-  LISTINGS,
   pricePerAcre,
-} from "@/lib/data/listings";
+  readListings,
+} from "@/lib/listings-store";
 import { MISSIONS } from "@/lib/types";
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
-  return LISTINGS.map((l) => ({ slug: l.slug }));
+  const listings = await readListings();
+  return listings.map((l) => ({ slug: l.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const listing = getListingBySlug(slug);
+  const listing = await getListingBySlug(slug);
   if (!listing) return { title: "Listing" };
   return {
     title: listing.title,
@@ -28,12 +31,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ListingDetailPage({ params }: Props) {
   const { slug } = await params;
-  const listing = getListingBySlug(slug);
+  const listing = await getListingBySlug(slug);
   if (!listing) notFound();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <Link href="/listings" className="text-sm font-medium text-forest hover:underline">
+      <Link
+        href="/listings"
+        className="text-sm font-medium text-forest hover:underline"
+      >
         ← All listings
       </Link>
 
@@ -80,17 +86,21 @@ export default async function ListingDetailPage({ params }: Props) {
               <h2 className="font-display text-xl font-semibold text-forest">
                 The story
               </h2>
-              <p className="mt-3 leading-relaxed text-charcoal/90">{listing.story}</p>
-            </section>
-
-            <section className="rounded-2xl border border-line bg-limestone/40 p-5">
-              <h2 className="font-display text-xl font-semibold text-forest">
-                Brandon&apos;s walk notes
-              </h2>
               <p className="mt-3 leading-relaxed text-charcoal/90">
-                {listing.brandonNotes}
+                {listing.story || "Details coming from Brandon’s walk notes."}
               </p>
             </section>
+
+            {listing.brandonNotes && (
+              <section className="rounded-2xl border border-line bg-limestone/40 p-5">
+                <h2 className="font-display text-xl font-semibold text-forest">
+                  Brandon&apos;s walk notes
+                </h2>
+                <p className="mt-3 leading-relaxed text-charcoal/90">
+                  {listing.brandonNotes}
+                </p>
+              </section>
+            )}
 
             <section className="grid gap-4 sm:grid-cols-2">
               {[
@@ -100,29 +110,39 @@ export default async function ListingDetailPage({ params }: Props) {
                 ["Flood / water", listing.floodNote],
                 ["Wildlife / recreation", listing.wildlifeNotes],
                 ["Location note", listing.addressDisplay],
-              ].map(([label, value]) => (
-                <div key={label as string} className="rounded-xl border border-line bg-limestone/50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-moss">
-                    {label}
-                  </p>
-                  <p className="mt-1 text-sm text-charcoal">{value}</p>
-                </div>
-              ))}
+              ]
+                .filter(([, value]) => value)
+                .map(([label, value]) => (
+                  <div
+                    key={label as string}
+                    className="rounded-xl border border-line bg-limestone/50 p-4"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-wider text-moss">
+                      {label}
+                    </p>
+                    <p className="mt-1 text-sm text-charcoal">{value}</p>
+                  </div>
+                ))}
             </section>
 
-            <section>
-              <h2 className="font-display text-xl font-semibold text-forest">
-                Features
-              </h2>
-              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                {listing.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-charcoal">
-                    <span className="h-1.5 w-1.5 rounded-full bg-forest" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            {listing.features.length > 0 && (
+              <section>
+                <h2 className="font-display text-xl font-semibold text-forest">
+                  Features
+                </h2>
+                <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {listing.features.map((f) => (
+                    <li
+                      key={f}
+                      className="flex items-center gap-2 text-sm text-charcoal"
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-forest" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
 
           <aside className="space-y-4">

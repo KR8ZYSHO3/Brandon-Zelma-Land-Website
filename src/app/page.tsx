@@ -2,17 +2,18 @@ import Link from "next/link";
 import { MissionChips } from "@/components/home/MissionChips";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { getActiveListings } from "@/lib/data/listings";
+import { getActiveListings } from "@/lib/listings-store";
 import { MISSION_STATEMENT } from "@/lib/data/business-plan";
 
-export default function HomePage() {
-  const featured = getActiveListings()
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const featured = (await getActiveListings())
     .filter((l) => l.status === "active")
     .slice(0, 3);
 
   return (
     <>
-      {/* HERO */}
       <section className="relative overflow-hidden text-charcoal">
         <div className="absolute inset-0 hero-glow" />
         <div className="absolute inset-0 dossier-grid opacity-30" />
@@ -59,14 +60,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FLOW */}
       <section className="border-b border-line bg-paper/80">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
           <p className="section-kicker">How a visit works</p>
           <h2 className="mt-2 font-display text-3xl font-semibold text-forest">
             A clear path — not a maze of links
           </h2>
-          <div className="mt-8 grid gap-4 counter-reset sm:grid-cols-2 lg:grid-cols-4" style={{ counterReset: "flow" }}>
+          <div
+            className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            style={{ counterReset: "flow" }}
+          >
             {[
               {
                 t: "Choose a side",
@@ -104,7 +107,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* MISSIONS */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="mb-8 max-w-2xl">
           <p className="section-kicker">Mission Lab</p>
@@ -113,20 +115,19 @@ export default function HomePage() {
           </h2>
           <p className="mt-3 text-muted leading-relaxed">
             Portals filter price and acres. We start with purpose — then match
-            ground that can actually deliver.
+            live inventory that can actually deliver.
           </p>
         </div>
         <MissionChips />
       </section>
 
-      {/* LISTINGS */}
       <section className="border-y border-line bg-limestone/40">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="section-kicker">Field dossiers</p>
               <h2 className="mt-2 font-display text-3xl font-semibold">
-                Land worth reading about
+                Live land for sale
               </h2>
             </div>
             <Link
@@ -139,8 +140,8 @@ export default function HomePage() {
           {featured.length === 0 ? (
             <div className="mt-8 surface-card p-8 text-center">
               <p className="text-sm text-muted">
-                New listings will appear here as they go live. Start a land
-                mission or talk to Brandon about selling.
+                No active listings at the moment. Start a mission so Brandon can
+                match you when the right tract hits — or talk about selling.
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-3">
                 <ButtonLink href="/find">Find land</ButtonLink>
@@ -159,7 +160,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* AI + SELL dual */}
       <section className="mx-auto grid max-w-6xl gap-6 px-4 py-16 sm:px-6 lg:grid-cols-2">
         <div className="surface-elevated p-8">
           <p className="section-kicker">Free AI · Land Scout</p>
@@ -167,17 +167,8 @@ export default function HomePage() {
             Ask before you drive the gravel road
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Land Scout is free and built for this site — missions, counties,
-            buying/selling flow, and what’s in the book. No API key required.
-            Optional Grok upgrade later for Brandon’s admin tools.
-          </p>
-          <ul className="mt-4 space-y-2 text-sm text-charcoal/90">
-            <li>• “40 acres to hunt in Vinton”</li>
-            <li>• “How do I sell my land?”</li>
-            <li>• “What’s near Hocking Hills?”</li>
-          </ul>
-          <p className="mt-6 text-xs text-muted">
-            Open the gold-dot button bottom-right anytime — or start Mission Lab.
+            Land Scout answers from live inventory and site guidance — missions,
+            counties, buying/selling flow.
           </p>
           <div className="mt-5">
             <ButtonLink href="/find">Open Mission Lab</ButtonLink>
@@ -189,9 +180,8 @@ export default function HomePage() {
             Inventory is the engine
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Get a Land Sale Readiness Score and a strategy conversation — not a
-            mystery commission pitch. Brandon markets with modern reach and
-            boots-on-ground truth.
+            Get a Land Sale Readiness Score and a strategy conversation with
+            Brandon under Buckeye Land Sales.
           </p>
           <div className="mt-6">
             <ButtonLink href="/sell">Score my readiness</ButtonLink>
@@ -199,7 +189,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* MISSION STATEMENT */}
       <section className="border-t border-line bg-forest-mid/40 text-charcoal">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
@@ -215,7 +204,11 @@ export default function HomePage() {
             <ButtonLink href="/about" variant="secondary">
               Meet Brandon
             </ButtonLink>
-            <ButtonLink href="/contact" variant="ghost" className="!text-charcoal">
+            <ButtonLink
+              href="/contact"
+              variant="ghost"
+              className="!text-charcoal"
+            >
               Contact
             </ButtonLink>
           </div>

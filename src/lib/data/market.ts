@@ -1,12 +1,15 @@
-import type { ClosedDeal, MarketComp } from "@/lib/types";
+/**
+ * Market comps & closed deals are live via market-book-store (Admin → Market).
+ * No seed data — only what Brandon logs.
+ */
+export {
+  readComps,
+  addComp,
+  readClosedDeals,
+  addClosedDeal,
+} from "@/lib/market-book-store";
 
-/** Comparable sales Brandon logs over time — starts empty. */
-export const MARKET_COMPS: MarketComp[] = [];
-
-/** Closed sides for his book analytics — starts empty. */
-export const CLOSED_DEALS: ClosedDeal[] = [];
-
-/** Educational macro context — not an appraisal. Refresh from USDA NASS periodically. */
+/** Educational only — links to public USDA data, not fake comps */
 export const USDA_CONTEXT = {
   title: "Ohio farm real estate context (educational)",
   source: "USDA NASS Land Values",
@@ -14,7 +17,7 @@ export const USDA_CONTEXT = {
   notes: [
     "Statewide cropland and farm real estate indexes lag and weight agricultural use heavily.",
     "SE Ohio recreational and timber tracts often price differently than western Ohio cropland.",
-    "Use internal comps + boots-on-ground for listing strategy; treat macro charts as climate, not GPS.",
+    "Use your own comps + boots-on-ground for listing strategy.",
   ],
   metrics: [
     {
@@ -24,7 +27,7 @@ export const USDA_CONTEXT = {
     {
       label: "How to use",
       value:
-        "Compare direction of travel year-over-year, not absolute SE recreational pricing",
+        "Compare direction of travel year-over-year, not absolute recreational pricing",
     },
   ],
 };

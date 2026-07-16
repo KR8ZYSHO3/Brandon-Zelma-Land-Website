@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { LeadForm } from "@/components/forms/LeadForm";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { getListingsByMission } from "@/lib/data/listings";
+import { getListingsByMission } from "@/lib/listings-store";
 import { MISSIONS, type MissionId } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Mission Lab",
   description:
-    "Tell Brandon what the land is for — hunt, farm, homestead, or timber — and get matched to Southeast Ohio tracts.",
+    "Tell Brandon what the land is for and match live inventory in his markets.",
 };
+
+export const dynamic = "force-dynamic";
 
 type Props = { searchParams: Promise<{ mission?: string }> };
 
@@ -17,7 +19,7 @@ export default async function FindPage({ searchParams }: Props) {
   const mission = MISSIONS.find((m) => m.id === sp.mission)?.id as
     | MissionId
     | undefined;
-  const matched = mission ? getListingsByMission(mission) : [];
+  const matched = mission ? await getListingsByMission(mission) : [];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -26,8 +28,7 @@ export default async function FindPage({ searchParams }: Props) {
       </h1>
       <p className="mt-3 max-w-2xl text-muted">
         Portals ask for price and acres. We ask what the land needs to{" "}
-        <em>do</em>. Save your mission — Brandon uses it to filter noise and
-        send tracts that actually fit.
+        <em>do</em>. Matches come from live listings only.
       </p>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -60,8 +61,8 @@ export default async function FindPage({ searchParams }: Props) {
             Save your land mission
           </h2>
           <p className="mt-2 text-sm text-muted">
-            No spam portal. Your profile goes straight into Brandon&apos;s
-            pipeline with a priority score.
+            Your profile goes into Brandon&apos;s live pipeline with a priority
+            score.
           </p>
           <div className="mt-6">
             <LeadForm
@@ -74,7 +75,7 @@ export default async function FindPage({ searchParams }: Props) {
         <div>
           <h2 className="font-display text-2xl font-semibold text-forest">
             {mission
-              ? `Matches for ${MISSIONS.find((m) => m.id === mission)?.label}`
+              ? `Live matches for ${MISSIONS.find((m) => m.id === mission)?.label}`
               : "Pick a mission to preview matches"}
           </h2>
           {mission ? (
