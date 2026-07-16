@@ -11,16 +11,117 @@ type Counts = {
   closedDeals: number;
 };
 
-export function TestPackManager({ initialCounts }: { initialCounts: Counts }) {
+type WalkLink = { label: string; href: string; group: string };
+
+const CUSTOMER_CHECKLIST: {
+  step: string;
+  what: string;
+  href: string;
+  expect: string;
+}[] = [
+  {
+    step: "1. Home",
+    what: "Landing as a visitor",
+    href: "/",
+    expect: "Featured [TEST-PACK] listings, Buy + Sell buttons",
+  },
+  {
+    step: "2. Buy — Mission Lab",
+    what: "Customer choosing what land is for",
+    href: "/find",
+    expect: "Four mission chips; save form at bottom",
+  },
+  {
+    step: "3. Hunt matches",
+    what: "Mission match pipeline",
+    href: "/find?mission=hunt",
+    expect: "Hunt Ridge (and timber overlap) cards + buyer form",
+  },
+  {
+    step: "4. Farm matches",
+    what: "Farm mission",
+    href: "/find?mission=farm",
+    expect: "Farm Bench listing card",
+  },
+  {
+    step: "5. Homestead matches",
+    what: "Homestead mission",
+    href: "/find?mission=homestead",
+    expect: "Homestead Hollow listing card",
+  },
+  {
+    step: "6. Timber matches",
+    what: "Timber mission",
+    href: "/find?mission=timber",
+    expect: "Timber Stand listing card",
+  },
+  {
+    step: "7. All listings",
+    what: "Browse inventory",
+    href: "/listings",
+    expect: "All four test tracts listed",
+  },
+  {
+    step: "8. Dossier + inquire",
+    what: "Listing detail + buyer form",
+    href: "/listings",
+    expect: "Open any [TEST-PACK] card → story, notes, Save mission form",
+  },
+  {
+    step: "9. Map",
+    what: "Land IQ pins",
+    href: "/map",
+    expect: "Pins for Meigs, Athens, Vinton, Hocking test tracts",
+  },
+  {
+    step: "10. County pages",
+    what: "SEO / local browse",
+    href: "/counties/meigs",
+    expect: "County blurb + Hunt Ridge card (also try athens, vinton, hocking)",
+  },
+  {
+    step: "11. Sell",
+    what: "Seller customer path",
+    href: "/sell",
+    expect: "Readiness checklist + Request seller strategy form",
+  },
+  {
+    step: "12. Contact",
+    what: "General inquiry",
+    href: "/contact",
+    expect: "Buyer form submits to Leads",
+  },
+  {
+    step: "13. Land Scout AI",
+    what: "Chat widget (bottom-right, not on /admin)",
+    href: "/",
+    expect: "Ask a land question; free advisor answers",
+  },
+  {
+    step: "14. Confirm in admin",
+    what: "Any forms you just submitted",
+    href: "/admin/leads",
+    expect: "New rows appear (plus seeded sample leads)",
+  },
+];
+
+export function TestPackManager({
+  initialCounts,
+  walkthrough,
+}: {
+  initialCounts: Counts;
+  walkthrough: WalkLink[];
+}) {
   const router = useRouter();
   const [counts, setCounts] = useState(initialCounts);
+  const [links, setLinks] = useState(walkthrough);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function run(action: "seed" | "purge") {
     if (action === "purge") {
       const ok = confirm(
-        "Remove ALL data tagged [TEST-PACK]? Real leads/listings without that tag stay.",
+        "Remove ALL [TEST-PACK] / test pipeline data from public site and admin? Real non-test data stays.",
       );
       if (!ok) return;
     }
@@ -44,13 +145,13 @@ export function TestPackManager({ initialCounts }: { initialCounts: Counts }) {
           closedDeals: number;
         };
         setMsg(
-          `Loaded test pack: ${r.listings} listings, ${r.buyerLeads} buyers, ${r.sellerLeads} sellers, ${r.comps} comps, ${r.closedDeals} closed.`,
+          `Customer inventory ready: ${r.listings} public listings, ${r.buyerLeads + r.sellerLeads} sample leads, market samples. Walk the checklist below (opens public site).`,
         );
       } else {
         const rem = data.result?.removed as Counts | undefined;
         setMsg(
           rem
-            ? `Removed: ${rem.listings} listings, ${rem.leads} leads, ${rem.comps} comps, ${rem.closedDeals} closed deals.`
+            ? `Removed from site + admin: ${rem.listings} listings, ${rem.leads} leads, ${rem.comps} comps, ${rem.closedDeals} closed.`
             : "Test pack cleared.",
         );
       }
@@ -58,6 +159,7 @@ export function TestPackManager({ initialCounts }: { initialCounts: Counts }) {
       const cRes = await fetch("/api/admin/test-pack");
       const cData = await cRes.json();
       if (cData.counts) setCounts(cData.counts as Counts);
+      if (cData.walkthrough) setLinks(cData.walkthrough as WalkLink[]);
       router.refresh();
     } catch (err) {
       setMsg(err instanceof Error ? err.message : "Error");
@@ -66,24 +168,27 @@ export function TestPackManager({ initialCounts }: { initialCounts: Counts }) {
     }
   }
 
+  const groups = Array.from(new Set(links.map((l) => l.group)));
+
   return (
     <div className="space-y-6">
       <div className="surface-elevated p-6">
-        <p className="section-kicker">Pipeline QA</p>
+        <p className="section-kicker">Customer site + admin</p>
         <h2 className="mt-1 font-display text-xl font-semibold text-forest">
-          Test pack controls
+          Full pipeline test pack
         </h2>
         <p className="mt-2 text-sm text-muted leading-relaxed">
-          One click loads fake buy/sell leads, listings, comps, and a closed
-          deal — all tagged <code className="text-xs">[TEST-PACK]</code>. Use{" "}
-          <strong className="text-charcoal">Remove test pack</strong> when done
-          (or delete rows individually in Leads / Listings / Market).
+          Loads fake tracts that show on the{" "}
+          <strong className="text-charcoal">public customer site</strong>{" "}
+          (home, Mission Lab, listings, map, counties) and sample CRM rows in
+          admin. Everything is tagged{" "}
+          <code className="text-xs">[TEST-PACK]</code> so you can wipe it clean.
         </p>
 
         <div className="mt-4 grid gap-2 sm:grid-cols-4">
           {[
-            ["Listings", counts.listings],
-            ["Leads", counts.leads],
+            ["Public listings", counts.listings],
+            ["Sample leads", counts.leads],
             ["Comps", counts.comps],
             ["Closed", counts.closedDeals],
           ].map(([label, n]) => (
@@ -108,7 +213,7 @@ export function TestPackManager({ initialCounts }: { initialCounts: Counts }) {
             onClick={() => void run("seed")}
             className="rounded-full btn-action px-5 py-2.5 text-sm font-semibold disabled:opacity-60"
           >
-            {busy ? "Working…" : "Load test pack"}
+            {busy ? "Working…" : "Load customer test pack"}
           </button>
           <button
             type="button"
@@ -116,60 +221,84 @@ export function TestPackManager({ initialCounts }: { initialCounts: Counts }) {
             onClick={() => void run("purge")}
             className="rounded-full border border-blaze/50 bg-[var(--danger-soft)] px-5 py-2.5 text-sm font-semibold text-blaze disabled:opacity-60"
           >
-            Remove test pack
+            Remove all test data
           </button>
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-line bg-paper px-5 py-2.5 text-sm font-semibold text-forest hover:border-moss"
+          >
+            Open public home ↗
+          </a>
         </div>
         {msg && <p className="mt-3 text-sm text-gold">{msg}</p>}
       </div>
 
       <div className="surface-card p-5">
         <h3 className="font-display text-lg font-semibold text-forest">
-          What the pack tests
+          Customer walkthrough (click each)
         </h3>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted">
-          <li>
-            <Link href="/admin/leads" className="font-semibold text-forest underline">
-              Leads
-            </Link>{" "}
-            — 3 buyers + 2 sellers (hot/warm/cool scores)
-          </li>
-          <li>
-            <Link
-              href="/admin/listings"
-              className="font-semibold text-forest underline"
+        <p className="mt-1 text-sm text-muted">
+          Open these as a visitor — not the admin nav. Submit Buy/Sell forms
+          with a fake name; then check Admin → Leads.
+        </p>
+        <ol className="mt-4 space-y-3">
+          {CUSTOMER_CHECKLIST.map((c) => (
+            <li
+              key={c.step}
+              className="rounded-xl border border-line bg-limestone/30 px-4 py-3"
             >
-              Listings
-            </Link>{" "}
-            — 2 active tracts (Meigs hunt + Athens homestead)
-          </li>
-          <li>
-            Public{" "}
-            <Link href="/listings" className="font-semibold text-forest underline">
-              /listings
-            </Link>
-            , dossiers,{" "}
-            <Link
-              href="/find?mission=hunt"
-              className="font-semibold text-forest underline"
-            >
-              Mission Lab
-            </Link>
-            , map pins
-          </li>
-          <li>
-            <Link href="/admin/market" className="font-semibold text-forest underline">
-              Market
-            </Link>{" "}
-            — 2 comps + 1 closed deal for KPIs
-          </li>
-          <li>
-            <Link href="/admin" className="font-semibold text-forest underline">
-              Command
-            </Link>{" "}
-            — totals, sources, demand vs inventory
-          </li>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="text-sm font-semibold text-forest">{c.step}</p>
+                <a
+                  href={c.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-semibold text-forest underline"
+                >
+                  Open {c.href === "/" ? "home" : c.href} ↗
+                </a>
+              </div>
+              <p className="mt-1 text-sm text-charcoal">{c.what}</p>
+              <p className="mt-1 text-xs text-muted">Expect: {c.expect}</p>
+            </li>
+          ))}
         </ol>
       </div>
+
+      {links.length > 0 && (
+        <div className="surface-card p-5">
+          <h3 className="font-display text-lg font-semibold text-forest">
+            Live links from current test inventory
+          </h3>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            {groups.map((g) => (
+              <div key={g}>
+                <p className="text-xs font-bold uppercase tracking-wider text-moss">
+                  {g}
+                </p>
+                <ul className="mt-2 space-y-1 text-sm">
+                  {links
+                    .filter((l) => l.group === g)
+                    .map((l) => (
+                      <li key={l.href + l.label}>
+                        <a
+                          href={l.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-forest underline-offset-2 hover:underline"
+                        >
+                          {l.label} ↗
+                        </a>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

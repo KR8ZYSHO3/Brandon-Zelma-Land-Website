@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/auth";
 import {
   countTestPack,
+  getCustomerWalkthroughLinks,
   purgeTestPack,
   seedTestPack,
 } from "@/lib/test-pack";
@@ -13,7 +14,8 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const counts = await countTestPack();
-  return NextResponse.json({ ok: true, counts });
+  const walkthrough = await getCustomerWalkthroughLinks();
+  return NextResponse.json({ ok: true, counts, walkthrough });
 }
 
 export async function POST(req: Request) {
@@ -26,15 +28,28 @@ export async function POST(req: Request) {
 
     if (action === "seed") {
       const result = await seedTestPack();
-      return NextResponse.json({ ok: true, action: "seed", result });
+      const walkthrough = await getCustomerWalkthroughLinks();
+      return NextResponse.json({
+        ok: true,
+        action: "seed",
+        result,
+        walkthrough,
+      });
     }
     if (action === "purge") {
       const result = await purgeTestPack();
-      return NextResponse.json({ ok: true, action: "purge", result });
+      const walkthrough = await getCustomerWalkthroughLinks();
+      return NextResponse.json({
+        ok: true,
+        action: "purge",
+        result,
+        walkthrough,
+      });
     }
     if (action === "count") {
       const counts = await countTestPack();
-      return NextResponse.json({ ok: true, counts });
+      const walkthrough = await getCustomerWalkthroughLinks();
+      return NextResponse.json({ ok: true, counts, walkthrough });
     }
 
     return NextResponse.json(
