@@ -6,18 +6,14 @@ import {
   formatPrice,
   getListingBySlug,
   pricePerAcre,
-  readListings,
 } from "@/lib/listings-store";
 import { MISSIONS } from "@/lib/types";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export const dynamic = "force-dynamic";
-
-export async function generateStaticParams() {
-  const listings = await readListings();
-  return listings.map((l) => ({ slug: l.slug }));
-}
+// Do not use generateStaticParams — inventory is live in Redis and new slugs
+// must resolve without a rebuild.
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
