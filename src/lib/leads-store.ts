@@ -129,3 +129,11 @@ export async function updateLead(
   await writeLeads(leads);
   return leads[idx];
 }
+
+export async function deleteLead(id: string): Promise<boolean> {
+  const leads = await readLeads();
+  const next = leads.filter((l) => l.id !== id);
+  if (next.length === leads.length) return false;
+  await writeLeads(next);
+  return true;
+}

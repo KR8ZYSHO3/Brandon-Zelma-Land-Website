@@ -80,6 +80,46 @@ export function MarketBookManager({
     }
   }
 
+  async function removeComp(id: string) {
+    if (!confirm("Delete this comp?")) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/market-book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", kind: "comp", id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed");
+      setComps((c) => c.filter((x) => x.id !== id));
+      router.refresh();
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "Error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeClosed(id: string) {
+    if (!confirm("Delete this closed deal?")) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/market-book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", kind: "closed", id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed");
+      setClosed((c) => c.filter((x) => x.id !== id));
+      router.refresh();
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "Error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-10">
       {msg && <p className="text-sm text-gold">{msg}</p>}
@@ -249,12 +289,13 @@ export function MarketBookManager({
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">Type</th>
                 <th className="px-3 py-2">Note</th>
+                <th className="px-3 py-2"> </th>
               </tr>
             </thead>
             <tbody>
               {comps.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-6 text-center text-muted">
+                  <td colSpan={8} className="px-3 py-6 text-center text-muted">
                     No comps logged yet.
                   </td>
                 </tr>
@@ -268,6 +309,16 @@ export function MarketBookManager({
                   <td className="px-3 py-2">{c.saleDate}</td>
                   <td className="px-3 py-2">{c.landType}</td>
                   <td className="px-3 py-2 text-xs text-muted">{c.sourceNote}</td>
+                  <td className="px-3 py-2">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void removeComp(c.id)}
+                      className="text-xs font-semibold text-blaze hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -288,15 +339,28 @@ export function MarketBookManager({
           {closed.map((d) => (
             <li
               key={d.id}
-              className="rounded-xl border border-line bg-paper px-4 py-3 text-sm"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-paper px-4 py-3 text-sm"
             >
-              <span className="font-medium">
-                {d.county} · {d.acres} ac · {formatPrice(d.price)}
-              </span>
-              <span className="text-muted">
-                {" "}
-                ({formatPrice(d.pricePerAcre)}/ac) · {d.side} · {d.closedAt}
-              </span>
+              <div>
+                <span className="font-medium">
+                  {d.county} · {d.acres} ac · {formatPrice(d.price)}
+                </span>
+                <span className="text-muted">
+                  {" "}
+                  ({formatPrice(d.pricePerAcre)}/ac) · {d.side} · {d.closedAt}
+                </span>
+                {d.notes && (
+                  <p className="mt-1 text-xs text-muted">{d.notes}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void removeClosed(d.id)}
+                className="text-xs font-semibold text-blaze hover:underline"
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ul>

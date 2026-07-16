@@ -1,11 +1,23 @@
 import { NextResponse } from "next/server";
-import { addLead } from "@/lib/leads-store";
+import { addLead, deleteLead } from "@/lib/leads-store";
+import { isAdminAuthenticated } from "@/lib/auth";
 import { scoreLead } from "@/lib/scoring";
 import type { LeadType, MissionId } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+
+    if (body.action === "delete") {
+      if (!(await isAdminAuthenticated())) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const ok = await deleteLead(String(body.id || ""));
+      return NextResponse.json({ ok });
+    }
+
     const type = body.type as LeadType;
     if (type !== "buyer" && type !== "seller") {
       return NextResponse.json({ error: "Invalid lead type" }, { status: 400 });

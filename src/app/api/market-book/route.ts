@@ -3,9 +3,13 @@ import { isAdminAuthenticated } from "@/lib/auth";
 import {
   addClosedDeal,
   addComp,
+  deleteClosedDeal,
+  deleteComp,
   readClosedDeals,
   readComps,
 } from "@/lib/market-book-store";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
@@ -24,6 +28,16 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const kind = String(body.kind || "comp");
+    const action = String(body.action || "create");
+
+    if (action === "delete") {
+      if (kind === "closed") {
+        const ok = await deleteClosedDeal(String(body.id || ""));
+        return NextResponse.json({ ok });
+      }
+      const ok = await deleteComp(String(body.id || ""));
+      return NextResponse.json({ ok });
+    }
 
     if (kind === "closed") {
       const deal = await addClosedDeal({

@@ -1,4 +1,15 @@
 import type { ClosedDeal, MarketComp } from "@/lib/types";
+import {
+  hasRedis,
+  redisGetJson,
+  redisSetJson,
+  storageLabel,
+  storageMode,
+  type DurableStorageMode,
+} from "@/lib/redis-kv";
+
+const COMPS_KEY = "bzl:comps";
+const CLOSED_KEY = "bzl:closed";
 
 const g = globalThis as unknown as {
   __bzlComps?: MarketComp[];
@@ -9,11 +20,20 @@ function canUseFs(): boolean {
   return process.env.VERCEL !== "1";
 }
 
-async function readJson<T>(file: string, fallback: T): Promise<T> {
-  if (!canUseFs()) {
-    if (file.includes("comps")) return (g.__bzlComps as T) || fallback;
-    return (g.__bzlClosed as T) || fallback;
-  }
+export function getMarketBookStorageMode(): DurableStorageMode {
+  return storageMode(canUseFs());
+}
+
+export function getMarketBookStorageLabel(): string {
+  return storageLabel(getMarketBookStorageMode(), "data/comps.json");
+}
+
+export function marketBookIsDurable(): boolean {
+  return getMarketBookStorageMode() !== "memory";
+}
+
+async function readJsonFile<T>(file: string): Promise<T[] | null> {
+  if (!canUseFs()) return null;
   try {
     const { promises: fs } = await import("fs");
     const path = await import("path");
@@ -21,15 +41,14 @@ async function readJson<T>(file: string, fallback: T): Promise<T> {
       path.join(process.cwd(), "data", file),
       "utf8",
     );
-    return JSON.parse(raw) as T;
+    const parsed = JSON.parse(raw) as T[];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return fallback;
+    return null;
   }
 }
 
-async function writeJson(file: string, data: unknown): Promise<void> {
-  if (file.includes("comps")) g.__bzlComps = data as MarketComp[];
-  else g.__bzlClosed = data as ClosedDeal[];
+async function writeJsonFile(file: string, data: unknown): Promise<void> {
   if (!canUseFs()) return;
   try {
     const { promises: fs } = await import("fs");
@@ -46,13 +65,25 @@ async function writeJson(file: string, data: unknown): Promise<void> {
 }
 
 export async function readComps(): Promise<MarketComp[]> {
-  const data = await readJson<MarketComp[]>("comps.json", g.__bzlComps || []);
-  g.__bzlComps = data;
-  return data;
+  if (hasRedis()) {
+    const fromRedis = await redisGetJson<MarketComp>(COMPS_KEY);
+    if (fromRedis) {
+      g.__bzlComps = fromRedis;
+      return fromRedis;
+    }
+  }
+  const fromDisk = await readJsonFile<MarketComp>("comps.json");
+  if (fromDisk) {
+    g.__bzlComps = fromDisk;
+    return fromDisk;
+  }
+  return g.__bzlComps || [];
 }
 
 export async function writeComps(comps: MarketComp[]): Promise<void> {
-  await writeJson("comps.json", comps);
+  g.__bzlComps = comps;
+  const ok = await redisSetJson(COMPS_KEY, comps);
+  if (!ok) await writeJsonFile("comps.json", comps);
 }
 
 export async function addComp(
@@ -64,7 +95,7 @@ export async function addComp(
   const acres = Number(input.acres);
   const price = Number(input.price);
   const row: MarketComp = {
-    id: `cmp-${Date.now()}`,
+    id: `cmp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     county: input.county.trim(),
     acres,
     price,
@@ -80,17 +111,34 @@ export async function addComp(
   return row;
 }
 
+export async function deleteComp(id: string): Promise<boolean> {
+  const comps = await readComps();
+  const next = comps.filter((c) => c.id !== id);
+  if (next.length === comps.length) return false;
+  await writeComps(next);
+  return true;
+}
+
 export async function readClosedDeals(): Promise<ClosedDeal[]> {
-  const data = await readJson<ClosedDeal[]>(
-    "closed-deals.json",
-    g.__bzlClosed || [],
-  );
-  g.__bzlClosed = data;
-  return data;
+  if (hasRedis()) {
+    const fromRedis = await redisGetJson<ClosedDeal>(CLOSED_KEY);
+    if (fromRedis) {
+      g.__bzlClosed = fromRedis;
+      return fromRedis;
+    }
+  }
+  const fromDisk = await readJsonFile<ClosedDeal>("closed-deals.json");
+  if (fromDisk) {
+    g.__bzlClosed = fromDisk;
+    return fromDisk;
+  }
+  return g.__bzlClosed || [];
 }
 
 export async function writeClosedDeals(deals: ClosedDeal[]): Promise<void> {
-  await writeJson("closed-deals.json", deals);
+  g.__bzlClosed = deals;
+  const ok = await redisSetJson(CLOSED_KEY, deals);
+  if (!ok) await writeJsonFile("closed-deals.json", deals);
 }
 
 export async function addClosedDeal(
@@ -100,7 +148,7 @@ export async function addClosedDeal(
   const acres = Number(input.acres);
   const price = Number(input.price);
   const row: ClosedDeal = {
-    id: `cd-${Date.now()}`,
+    id: `cd-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     county: input.county.trim(),
     acres,
     price,
@@ -114,4 +162,12 @@ export async function addClosedDeal(
   deals.unshift(row);
   await writeClosedDeals(deals);
   return row;
+}
+
+export async function deleteClosedDeal(id: string): Promise<boolean> {
+  const deals = await readClosedDeals();
+  const next = deals.filter((d) => d.id !== id);
+  if (next.length === deals.length) return false;
+  await writeClosedDeals(next);
+  return true;
 }

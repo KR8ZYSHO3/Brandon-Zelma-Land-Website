@@ -23,6 +23,12 @@ const MODULES = [
     when: "When you go live with a new tract or review what’s working.",
   },
   {
+    href: "/admin/test-lab",
+    name: "Test Lab",
+    plain: "Load / remove [TEST-PACK] fake data to walk every pipeline safely.",
+    when: "When checking that Buy, Sell, Listings, and Market all work.",
+  },
+  {
     href: "/admin/service-area",
     name: "Service Area",
     plain: "Turn counties/states on the map ON/OFF — expand past SE Ohio anytime.",
