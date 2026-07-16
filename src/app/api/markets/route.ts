@@ -9,6 +9,8 @@ import {
 } from "@/lib/markets-store";
 import type { ServiceAreaConfig } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 /** Public + admin can read active service area */
 export async function GET() {
   const area = await getServiceArea();

@@ -47,7 +47,13 @@ export default async function MapPage() {
       <h1 className="font-display text-4xl font-semibold text-forest">
         Land IQ
       </h1>
-      <p className="mt-3 max-w-2xl text-muted">{area.regionBlurb}</p>
+      <p className="mt-2 text-sm font-semibold text-forest">
+        {area.regionLabel}
+        <span className="ml-2 font-normal text-muted">
+          · {markets.length} markets on
+        </span>
+      </p>
+      <p className="mt-2 max-w-2xl text-muted">{area.regionBlurb}</p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="relative col-span-2 min-h-[420px] overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-moss/40 via-limestone to-soil/20 shadow-inner">

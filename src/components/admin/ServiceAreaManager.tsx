@@ -49,7 +49,12 @@ export function ServiceAreaManager({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Request failed");
       setConfig(data.config as ServiceAreaConfig);
-      setStatus("Saved.");
+      const active = (data.config as ServiceAreaConfig).markets.filter(
+        (m) => m.active,
+      ).length;
+      setStatus(
+        `Saved. ${active} markets on · “${(data.config as ServiceAreaConfig).regionLabel}”. Open /map and hard-refresh (Ctrl+Shift+R).`,
+      );
     } catch (e) {
       setStatus(e instanceof Error ? e.message : "Error");
     } finally {

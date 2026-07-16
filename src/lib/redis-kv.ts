@@ -51,6 +51,19 @@ export async function redisGetJson<T>(key: string): Promise<T[] | null> {
   }
 }
 
+/** Single JSON object (not array). null = no Redis / error; undefined = empty key */
+export async function redisGetObject<T>(key: string): Promise<T | null | undefined> {
+  if (!hasRedis()) return null;
+  try {
+    const raw = await redisCommand<string | null>(["GET", key]);
+    if (!raw) return undefined;
+    return JSON.parse(raw) as T;
+  } catch (e) {
+    console.error(`[redis] GET object ${key} failed`, e);
+    return null;
+  }
+}
+
 export async function redisSetJson(key: string, value: unknown): Promise<boolean> {
   if (!hasRedis()) return false;
   try {
