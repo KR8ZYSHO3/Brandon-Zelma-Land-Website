@@ -403,7 +403,5 @@ export async function getCustomerWalkthroughLinks(): Promise<
     { group: "Info", label: "About Brandon", href: "/about" },
   );
 
-  // silence unused if empty pack
-  void byMission;
   return links;
 }
