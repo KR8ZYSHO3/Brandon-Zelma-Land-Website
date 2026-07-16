@@ -1,0 +1,45 @@
+HOW TO OPEN THIS WEBSITE (WINDOWS)
+==================================
+
+STEP 1 - EXTRACT
+  Right-click the zip -> Extract All
+  Do NOT open files while they are still inside the zip.
+
+STEP 2 - GO INTO THE FOLDER
+  You should see files like:
+    OPEN-WEBSITE.cmd
+    1-CLICK-ME-FIRST-DEBUG.cmd
+    package.json
+    src  (folder)
+
+STEP 3 - TEST YOUR CLICK
+  Double-click:  1-CLICK-ME-FIRST-DEBUG.cmd
+
+  A black window should appear AND Notepad should open
+  showing LAUNCH-LOG.txt.
+
+  If NOTHING happens:
+    - You may still be inside the zip
+    - Or Windows is blocking scripts
+    - Right-click the .cmd -> Properties -> Unblock (if shown) -> OK
+    - Then right-click -> Run as administrator
+
+STEP 4 - OPEN THE SITE
+  Double-click:  OPEN-WEBSITE.cmd
+  (or Start-Brandon-Zelma-Land.bat - same thing)
+
+  Wait for install the first time (needs internet).
+  Browser opens to http://localhost:3000
+  KEEP THE BLACK WINDOW OPEN.
+
+STEP 5 - IF IT STILL FAILS
+  Look in the same folder for:  LAUNCH-LOG.txt
+  Email or text that file to your builder.
+
+ADMIN LOGIN (after site is open)
+  http://localhost:3000/admin
+  user: admin
+  password: zelma
+
+NEED NODE.JS ONCE
+  https://nodejs.org  -> download LTS -> install -> restart PC once

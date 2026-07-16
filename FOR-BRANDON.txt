@@ -1,0 +1,73 @@
+========================================
+  BRANDON ZELMA LAND — HOW TO OPEN IT
+========================================
+
+IMPORTANT: Unzip / extract the folder first.
+Do NOT double-click files while they are still inside the .zip.
+
+----------------------------------------
+START THE WEBSITE
+----------------------------------------
+
+1. Extract the zip to your Desktop (or Documents).
+2. Open the folder.
+3. Double-click:   Start-Brandon-Zelma-Land.bat
+
+   If Windows asks "Windows protected your PC":
+     -> Click "More info" -> "Run anyway"
+
+4. First time may take a few minutes (downloads tools). Needs internet once.
+5. Browser should open to:  http://localhost:3000
+6. Leave the black/blue window OPEN while you use the site.
+
+If the .bat still fails, try right-click:
+   Start-Brandon-Zelma-Land.ps1  ->  Run with PowerShell
+
+If that is blocked, open PowerShell in this folder and type:
+   powershell -ExecutionPolicy Bypass -File .\Start-Brandon-Zelma-Land.ps1
+
+----------------------------------------
+STOP THE WEBSITE
+----------------------------------------
+
+Double-click:  Stop-Server.bat
+or close the black window / press Ctrl+C
+
+----------------------------------------
+IF IT FAILS
+----------------------------------------
+
+1. Install Node.js LTS:  https://nodejs.org
+   - During install, leave "Add to PATH" checked
+   - Restart the computer once after installing
+
+2. Open launch-log.txt in this folder (created when the bat runs)
+   and send it to whoever built this site for you.
+
+3. Make sure you extracted the whole folder so you can see:
+   - Start-Brandon-Zelma-Land.bat
+   - package.json
+   - src  (folder)
+
+----------------------------------------
+ADMIN (PRIVATE)
+----------------------------------------
+
+  http://localhost:3000/admin
+
+  Username:  admin
+  Password:  zelma
+
+----------------------------------------
+USEFUL PAGES
+----------------------------------------
+
+  Home       http://localhost:3000
+  Find land  http://localhost:3000/find
+  Listings   http://localhost:3000/listings
+  Sell       http://localhost:3000/sell
+  Admin      http://localhost:3000/admin
+
+This only runs on THIS computer (localhost) until the site is hosted online.
+
+Brandon Zelma, Real Estate Salesperson · Buckeye Land Sales
