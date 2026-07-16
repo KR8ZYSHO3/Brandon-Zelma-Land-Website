@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export function LoginForm() {
-  const router = useRouter();
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,8 +22,8 @@ export function LoginForm() {
       setError("Invalid username or password");
       return;
     }
-    router.push("/admin");
-    router.refresh();
+    // Full page load so the session cookie is always sent on first Command render
+    window.location.assign("/admin");
   }
 
   return (

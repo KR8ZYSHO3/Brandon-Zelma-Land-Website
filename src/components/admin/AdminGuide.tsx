@@ -1,10 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const MODULES = [
   {
     href: "/admin",
     name: "Command",
-    plain: "Home base. Numbers + “what should I do today?” prompts.",
+    plain: "Home base. Numbers + “what should I do today?” prompts. (This page.)",
     when: "Open this first every day (2 minutes).",
   },
   {
@@ -70,6 +73,8 @@ const MODULES = [
 ];
 
 export function AdminGuide() {
+  const pathname = usePathname() || "";
+
   return (
     <div className="admin-guide space-y-3">
       <div className="surface-elevated p-5 sm:p-6">
@@ -105,17 +110,45 @@ export function AdminGuide() {
       <details open>
         <summary>What each tab is for (cheat sheet)</summary>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {MODULES.map((m) => (
-            <Link
-              key={m.href}
-              href={m.href}
-              className="rounded-xl border border-line bg-limestone/40 p-3 transition hover:border-moss"
-            >
-              <p className="text-sm font-semibold text-forest">{m.name}</p>
-              <p className="mt-1 text-xs text-muted leading-relaxed">{m.plain}</p>
-              <p className="mt-2 text-[11px] font-medium text-gold">{m.when}</p>
-            </Link>
-          ))}
+          {MODULES.map((m) => {
+            const here =
+              m.href === "/admin"
+                ? pathname === "/admin"
+                : pathname === m.href || pathname.startsWith(`${m.href}/`);
+            return (
+              <Link
+                key={m.href}
+                href={m.href}
+                onClick={(e) => {
+                  if (here) {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  } else {
+                    e.preventDefault();
+                    window.location.assign(m.href);
+                  }
+                }}
+                className={`rounded-xl border p-3 transition hover:border-moss ${
+                  here
+                    ? "border-moss bg-forest-mid/40 ring-1 ring-moss/40"
+                    : "border-line bg-limestone/40"
+                }`}
+              >
+                <p className="text-sm font-semibold text-forest">
+                  {m.name}
+                  {here ? (
+                    <span className="ml-2 text-[11px] font-medium text-gold">
+                      · you are here
+                    </span>
+                  ) : null}
+                </p>
+                <p className="mt-1 text-xs text-muted leading-relaxed">
+                  {m.plain}
+                </p>
+                <p className="mt-2 text-[11px] font-medium text-gold">{m.when}</p>
+              </Link>
+            );
+          })}
         </div>
       </details>
 
