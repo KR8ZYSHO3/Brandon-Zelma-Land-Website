@@ -114,8 +114,11 @@ export default async function HomePage() {
             What is the land for?
           </h2>
           <p className="mt-3 text-muted leading-relaxed">
-            Portals filter price and acres. We start with purpose — then match
-            live inventory that can actually deliver.
+            Portals filter price and acres. We score{" "}
+            <strong className="text-charcoal">Land Fit</strong> for purpose and
+            put serious buyers on{" "}
+            <strong className="text-charcoal">Watch Radar</strong> until the
+            right tract hits.
           </p>
         </div>
         <MissionChips />

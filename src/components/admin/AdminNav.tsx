@@ -7,6 +7,7 @@ import { LogoutButton } from "./LogoutButton";
 const LINKS = [
   { href: "/admin", label: "Command", exact: true },
   { href: "/admin/leads", label: "Leads" },
+  { href: "/admin/watches", label: "Watch Radar" },
   { href: "/admin/listings", label: "Listings" },
   { href: "/admin/test-lab", label: "Test Lab" },
   { href: "/admin/service-area", label: "Service Area" },

@@ -44,7 +44,9 @@ export function middleware(req: NextRequest) {
   // Soft rate limits on public write APIs
   if (
     req.method === "POST" &&
-    (pathname.startsWith("/api/leads") || pathname.startsWith("/api/ai"))
+    (pathname.startsWith("/api/leads") ||
+      pathname.startsWith("/api/ai") ||
+      pathname.startsWith("/api/watches"))
   ) {
     const ip = clientIp(req);
     const ok = rateLimit(`${pathname}:${ip}`, 20, 60_000);

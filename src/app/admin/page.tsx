@@ -7,6 +7,8 @@ import { AdminGuide } from "@/components/admin/AdminGuide";
 import { formatPrice } from "@/lib/data/listings";
 import { MISSION_STATEMENT } from "@/lib/data/business-plan";
 import { leadsAreDurable, getLeadsStorageLabel } from "@/lib/leads-store";
+import { getWatchDemand, readWatches } from "@/lib/watch-store";
+import { MISSIONS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +17,18 @@ export default async function AdminDashboardPage() {
   const s = await getDashboardStats();
   const durable = leadsAreDurable();
   const storageLabel = getLeadsStorageLabel();
+  const watches = (await readWatches()).filter((w) => w.active);
+  const watchDemand = (await getWatchDemand()).slice(0, 6);
 
   const cards = [
     { label: "Total leads", value: String(s.totalLeads), tip: "All form fills ever" },
     { label: "This week", value: String(s.leadsThisWeek), tip: "New interest last 7 days" },
     { label: "Hot leads", value: String(s.hotLeads), tip: "Call these first" },
+    {
+      label: "Watch Radar",
+      value: String(watches.length),
+      tip: "Buyers waiting on mission fits",
+    },
     {
       label: "Buyers / Sellers",
       value: `${s.buyerLeads} / ${s.sellerLeads}`,
@@ -100,6 +109,7 @@ export default async function AdminDashboardPage() {
       <div className="mt-8 flex flex-wrap gap-2">
         {[
           ["/admin/leads", "Leads first"],
+          ["/admin/watches", "Watch Radar demand"],
           ["/admin/service-area", "Expand map area"],
           ["/admin/marketing", "This week’s marketing"],
           ["/admin/ai", "Draft with AI"],
@@ -177,6 +187,39 @@ export default async function AdminDashboardPage() {
               >
                 <span>{x.source}</span>
                 <span className="font-semibold">{x.count}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="surface-card p-5">
+          <h2 className="font-display text-lg font-semibold text-forest">
+            Watch Radar demand
+          </h2>
+          <p className="text-xs text-muted">
+            Mission × county from Buyer Watch —{" "}
+            <Link href="/admin/watches" className="text-forest underline">
+              full board
+            </Link>
+          </p>
+          <ul className="mt-3 space-y-1 text-sm">
+            {watchDemand.length === 0 && (
+              <li className="text-muted">
+                No watches yet — share Mission Lab Watch Radar.
+              </li>
+            )}
+            {watchDemand.map((d) => (
+              <li
+                key={d.key}
+                className="flex justify-between rounded-lg border border-line bg-limestone/30 px-3 py-2"
+              >
+                <span>
+                  {MISSIONS.find((m) => m.id === d.mission)?.short || d.mission}{" "}
+                  · {d.county}
+                </span>
+                <span className="font-semibold text-forest">
+                  {d.watchers} watching
+                </span>
               </li>
             ))}
           </ul>

@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { LeadForm } from "@/components/forms/LeadForm";
+import { FitScoreBadge } from "@/components/listings/FitScoreBadge";
 import {
   formatPrice,
   getListingBySlug,
   pricePerAcre,
 } from "@/lib/listings-store";
-import { MISSIONS } from "@/lib/types";
+import { scoreListingFit } from "@/lib/fit-score";
+import { MISSIONS, type MissionId } from "@/lib/types";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ mission?: string }>;
+};
 
 export const dynamic = "force-dynamic";
 // Do not use generateStaticParams — inventory is live in Redis and new slugs
@@ -25,10 +30,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ListingDetailPage({ params }: Props) {
+export default async function ListingDetailPage({
+  params,
+  searchParams,
+}: Props) {
   const { slug } = await params;
+  const sp = await searchParams;
   const listing = await getListingBySlug(slug);
   if (!listing) notFound();
+
+  const mission =
+    (MISSIONS.find((m) => m.id === sp.mission)?.id as MissionId | undefined) ||
+    listing.missions[0] ||
+    "homestead";
+  const fit = scoreListingFit(listing, { mission });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -142,6 +157,22 @@ export default async function ListingDetailPage({ params }: Props) {
           </div>
 
           <aside className="space-y-4">
+            <FitScoreBadge fit={fit} />
+            <div className="flex flex-wrap gap-1.5">
+              {MISSIONS.map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/listings/${listing.slug}?mission=${m.id}`}
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                    mission === m.id
+                      ? "bg-forest text-cream"
+                      : "border border-line bg-paper text-forest hover:border-moss"
+                  }`}
+                >
+                  Fit as {m.short}
+                </Link>
+              ))}
+            </div>
             <div className="rounded-2xl border border-line bg-limestone p-5">
               <p className="text-sm font-semibold text-forest">
                 Interested in this tract?
@@ -153,9 +184,15 @@ export default async function ListingDetailPage({ params }: Props) {
             <LeadForm
               type="buyer"
               source={`listing:${listing.slug}`}
-              defaultMission={listing.missions[0]}
-              extraPayload={{ listingSlug: listing.slug }}
+              defaultMission={mission}
+              extraPayload={{ listingSlug: listing.slug, fitScore: fit.score }}
             />
+            <p className="text-center text-xs text-muted">
+              Want ongoing matches?{" "}
+              <Link href="/find" className="font-semibold text-forest underline">
+                Mission Lab → Watch Radar
+              </Link>
+            </p>
           </aside>
         </div>
       </div>

@@ -1,18 +1,37 @@
 import Link from "next/link";
-import type { Listing } from "@/lib/types";
+import type { Listing, MissionId } from "@/lib/types";
 import { formatPrice, pricePerAcre } from "@/lib/format";
 import { MISSIONS } from "@/lib/types";
+import { scoreListingFit } from "@/lib/fit-score";
+import { FitScoreBadge } from "@/components/listings/FitScoreBadge";
 
-export function ListingCard({ listing }: { listing: Listing }) {
+export function ListingCard({
+  listing,
+  mission,
+}: {
+  listing: Listing;
+  mission?: MissionId;
+}) {
+  const fit = mission
+    ? scoreListingFit(listing, { mission })
+    : listing.missions[0]
+      ? scoreListingFit(listing, { mission: listing.missions[0] })
+      : null;
+
   return (
     <Link
-      href={`/listings/${listing.slug}`}
+      href={`/listings/${listing.slug}${mission ? `?mission=${mission}` : ""}`}
       className="group flex flex-col overflow-hidden surface-elevated transition duration-300 hover:-translate-y-1"
     >
       <div className="relative flex h-48 items-end overflow-hidden bg-forest p-5">
         <div className="absolute inset-0 hero-glow opacity-90" />
         <div className="absolute inset-0 dossier-grid opacity-40" />
         <div className="absolute right-0 top-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-gold/20 blur-2xl" />
+        {fit && (
+          <div className="absolute right-3 top-3 z-10">
+            <FitScoreBadge fit={fit} compact />
+          </div>
+        )}
         <div className="relative">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
             {listing.county} County · {listing.acres}± ac
@@ -22,7 +41,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </p>
         </div>
         {listing.status === "pending" && (
-          <span className="absolute right-3 top-3 rounded-full bg-blaze px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-blaze px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
             Pending
           </span>
         )}

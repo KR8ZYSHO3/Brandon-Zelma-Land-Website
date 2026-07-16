@@ -17,6 +17,13 @@ const MODULES = [
     when: "After any notification — call hot leads same day.",
   },
   {
+    href: "/admin/watches",
+    name: "Watch Radar",
+    plain:
+      "Buyer demand by mission × county + which live tracts already fit (Land Fit).",
+    when: "When deciding where to list next or who to call first.",
+  },
+  {
     href: "/admin/listings",
     name: "Listings",
     plain: "Your land book performance (views, CTAs) + launch checklist.",
