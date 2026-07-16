@@ -2,18 +2,24 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { getListingsByCounty } from "@/lib/data/listings";
-import { FOCUS_COUNTIES } from "@/lib/types";
+import { getActiveMarkets, getServiceArea } from "@/lib/markets-store";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { MARKET_CATALOG } from "@/lib/data/default-markets";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return FOCUS_COUNTIES.map((c) => ({ slug: c.slug }));
+export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  return MARKET_CATALOG.map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const county = FOCUS_COUNTIES.find((c) => c.slug === slug);
+  const area = await getServiceArea();
+  const county =
+    area.markets.find((c) => c.slug === slug) ||
+    MARKET_CATALOG.find((c) => c.slug === slug);
   if (!county) return { title: "County" };
   return {
     title: `Land for Sale in ${county.name}`,
@@ -23,8 +29,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CountyPage({ params }: Props) {
   const { slug } = await params;
-  const county = FOCUS_COUNTIES.find((c) => c.slug === slug);
+  const area = await getServiceArea();
+  const county =
+    area.markets.find((c) => c.slug === slug) ||
+    MARKET_CATALOG.find((c) => c.slug === slug);
   if (!county) notFound();
+
+  const active = await getActiveMarkets();
+  const isActive = active.some((m) => m.slug === slug);
   const nameShort = county.name.replace(" County", "");
   const listings = getListingsByCounty(nameShort);
 
@@ -32,10 +44,17 @@ export default async function CountyPage({ params }: Props) {
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <h1 className="font-display text-4xl font-semibold text-forest">
         Land for sale in {county.name}
+        {county.state ? `, ${county.state}` : ""}
       </h1>
       <p className="mt-3 max-w-2xl text-muted leading-relaxed">{county.blurb}</p>
       <p className="mt-2 text-sm text-muted">
         Guided by Brandon Zelma · <strong>Buckeye Land Sales</strong>
+        {!isActive && (
+          <span className="block mt-1 text-xs text-gold">
+            This market is in the catalog but currently off in Service Area
+            settings.
+          </span>
+        )}
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
@@ -50,7 +69,7 @@ export default async function CountyPage({ params }: Props) {
       </h2>
       {listings.length === 0 ? (
         <p className="mt-4 text-sm text-muted">
-          No active demo listings in this county right now — save a mission or
+          No active listings tagged to this county right now — save a mission or
           seller lead and Brandon will prospect.
         </p>
       ) : (

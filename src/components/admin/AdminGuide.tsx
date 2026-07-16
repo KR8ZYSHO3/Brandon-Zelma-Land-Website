@@ -20,6 +20,12 @@ const MODULES = [
     when: "When you go live with a new tract or review what’s working.",
   },
   {
+    href: "/admin/service-area",
+    name: "Service Area",
+    plain: "Turn counties/states on the map ON/OFF — expand past SE Ohio anytime.",
+    when: "When you want wider coverage on the public map and buyer forms.",
+  },
+  {
     href: "/admin/market",
     name: "Market",
     plain: "Comps, demand vs supply, pricing discipline (not an appraisal).",

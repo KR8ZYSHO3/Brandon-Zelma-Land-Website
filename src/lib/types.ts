@@ -105,6 +105,25 @@ export interface CountyPage {
   blurb: string;
   lat: number;
   lng: number;
+  /** State code e.g. OH, WV, KY */
+  state?: string;
+  /** When false, hidden from map, forms, SEO county list */
+  active?: boolean;
+}
+
+/** Admin-managed service area for map + marketing coverage */
+export interface ServiceAreaConfig {
+  /** Label on the public map, e.g. "Southeast Ohio" or "Ohio + neighbors" */
+  regionLabel: string;
+  /** Short blurb under the map */
+  regionBlurb: string;
+  markets: MarketArea[];
+  updatedAt?: string;
+}
+
+export interface MarketArea extends CountyPage {
+  state: string;
+  active: boolean;
 }
 
 export const MISSIONS: {
@@ -139,6 +158,10 @@ export const MISSIONS: {
   },
 ];
 
+/**
+ * @deprecated Prefer getActiveMarkets() from markets-store for live coverage.
+ * Kept as SE Ohio defaults for static fallbacks.
+ */
 export const FOCUS_COUNTIES: CountyPage[] = [
   {
     slug: "athens",

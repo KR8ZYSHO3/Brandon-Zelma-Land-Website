@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FOCUS_COUNTIES } from "@/lib/types";
+import { getActiveMarkets } from "@/lib/markets-store";
 
 export const metadata: Metadata = {
   title: "Field Notes",
   description:
-    "Southeast Ohio land buying guides, county notes, and field wisdom from Brandon Zelma Land.",
+    "Land buying guides and county notes from Brandon Zelma Land.",
 };
+
+export const dynamic = "force-dynamic";
 
 const NOTES = [
   {
@@ -29,15 +31,17 @@ const NOTES = [
   },
 ];
 
-export default function FieldNotesPage() {
+export default async function FieldNotesPage() {
+  const counties = await getActiveMarkets();
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <h1 className="font-display text-4xl font-semibold text-forest">
         Field Notes
       </h1>
       <p className="mt-3 text-muted">
-        SEO + education engine. Full MDX articles can expand these stubs; county
-        landing pages are live now for search coverage.
+        Education engine + county guides. Active counties follow Admin → Service
+        Area (expand anytime).
       </p>
 
       <div className="mt-10 space-y-4">
@@ -56,16 +60,17 @@ export default function FieldNotesPage() {
       </div>
 
       <h2 className="mt-12 font-display text-2xl font-semibold text-forest">
-        County guides
+        Active market guides
       </h2>
       <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-        {FOCUS_COUNTIES.map((c) => (
+        {counties.map((c) => (
           <li key={c.slug}>
             <Link
               href={`/counties/${c.slug}`}
               className="text-sm font-medium text-forest hover:underline"
             >
-              Land for sale in {c.name} →
+              Land for sale in {c.name}
+              {c.state && c.state !== "OH" ? `, ${c.state}` : ""} →
             </Link>
           </li>
         ))}

@@ -1,5 +1,6 @@
 import { getActiveListings, formatPrice } from "@/lib/data/listings";
 import { MISSIONS, FOCUS_COUNTIES } from "@/lib/types";
+// FOCUS_COUNTIES used as offline fallback; live map uses admin service area
 import { MISSION_STATEMENT, BUSINESS_PLAN } from "@/lib/data/business-plan";
 
 export type AiMode = "public" | "admin";
@@ -82,7 +83,7 @@ export function freeLandAdvisor(
   }
 
   if (/county|where|athens|vinton|hocking|meigs|morgan|perry|jackson|ross|southeast|se ohio/.test(q)) {
-    return `Focus counties (SE Ohio):\n${FOCUS_COUNTIES.map((c) => `• ${c.name} — ${c.blurb}`).join("\n")}\n\nBrowse /map or a county page, or tell me your mission + max drive time from Columbus/Cincy/local.`;
+    return `Coverage markets (defaults — Brandon can expand beyond SE Ohio in Admin → Service Area):\n${FOCUS_COUNTIES.map((c) => `• ${c.name} — ${c.blurb}`).join("\n")}\n\nBrowse /map or a county page, or tell me your mission + preferred counties/states.`;
   }
 
   if (/buy|buying|how do i buy|process/.test(q)) {

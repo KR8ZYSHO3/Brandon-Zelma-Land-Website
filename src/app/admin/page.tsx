@@ -69,6 +69,7 @@ export default async function AdminDashboardPage() {
       <div className="mt-8 flex flex-wrap gap-2">
         {[
           ["/admin/leads", "Leads first"],
+          ["/admin/service-area", "Expand map area"],
           ["/admin/marketing", "This week’s marketing"],
           ["/admin/ai", "Draft with AI"],
           ["/admin/va-loans", "VA home loans"],

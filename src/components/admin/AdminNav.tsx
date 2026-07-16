@@ -5,6 +5,7 @@ const LINKS = [
   { href: "/admin", label: "Command" },
   { href: "/admin/leads", label: "Leads" },
   { href: "/admin/listings", label: "Listings" },
+  { href: "/admin/service-area", label: "Service Area" },
   { href: "/admin/market", label: "Market" },
   { href: "/admin/business-plan", label: "Business Plan" },
   { href: "/admin/business-dev", label: "VA Path" },

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { LeadType, MissionId } from "@/lib/types";
 import { MISSIONS, FOCUS_COUNTIES } from "@/lib/types";
+
+type CountyOpt = { slug: string; name: string; state?: string };
 
 export function LeadForm({
   type,
@@ -21,6 +23,33 @@ export function LeadForm({
     "idle",
   );
   const [error, setError] = useState("");
+  const [counties, setCounties] = useState<CountyOpt[]>(
+    FOCUS_COUNTIES.map((c) => ({ slug: c.slug, name: c.name })),
+  );
+
+  useEffect(() => {
+    fetch("/api/markets")
+      .then((r) => r.json())
+      .then((data) => {
+        const active = (data.activeMarkets || []) as {
+          slug: string;
+          name: string;
+          state?: string;
+        }[];
+        if (active.length) {
+          setCounties(
+            active.map((m) => ({
+              slug: m.slug,
+              name: m.name,
+              state: m.state,
+            })),
+          );
+        }
+      })
+      .catch(() => {
+        /* keep defaults */
+      });
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -128,11 +157,18 @@ export function LeadForm({
             <legend className="text-sm font-medium text-charcoal">
               Counties of interest
             </legend>
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {FOCUS_COUNTIES.map((c) => (
+            <div className="mt-2 grid max-h-48 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
+              {counties.map((c) => (
                 <label key={c.slug} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="counties" value={c.name.replace(" County", "")} />
-                  {c.name.replace(" County", "")}
+                  <input
+                    type="checkbox"
+                    name="counties"
+                    value={c.name.replace(" County", "")}
+                  />
+                  <span>
+                    {c.name.replace(" County", "")}
+                    {c.state && c.state !== "OH" ? ` (${c.state})` : ""}
+                  </span>
                 </label>
               ))}
             </div>
