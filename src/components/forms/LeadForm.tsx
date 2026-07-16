@@ -53,9 +53,11 @@ export function LeadForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Capture form before any await — e.currentTarget is null after async work
+    const form = e.currentTarget;
     setStatus("loading");
     setError("");
-    const fd = new FormData(e.currentTarget);
+    const fd = new FormData(form);
     const counties = fd.getAll("counties").map(String);
 
     const body = {
@@ -85,7 +87,6 @@ export function LeadForm({
         throw new Error(data.error || "Something went wrong");
       }
       setStatus("done");
-      e.currentTarget.reset();
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Failed to submit");
