@@ -96,4 +96,27 @@ You can still enable Pages on the repo for a README, but the **working app** sho
 
 ## After deploy
 
-Leads on free Vercel are **in-memory** (may reset when the server sleeps). Fine for demo. For real production later: Supabase free DB.
+### Keep leads permanently (required for real use)
+
+Without this, Buy/Sell forms say “success” but **Admin → Leads stays empty** on Vercel (serverless memory is not shared).
+
+**Free fix — Upstash Redis (~3 minutes):**
+
+1. Sign up at https://console.upstash.com → **Create database** → Redis (free tier).
+2. Open the database → **REST API** → copy:
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+3. Vercel → your project → **Settings → Environment Variables** → add both for Production (and Preview if you want).
+4. **Deployments → … → Redeploy**.
+5. Submit Sell or Mission Lab once → open **https://YOUR-SITE.vercel.app/admin/leads**.
+
+Where customer forms go:
+
+| Public page | Lead type | Admin location |
+|-------------|-----------|----------------|
+| `/sell` | seller | Admin → **Leads** |
+| `/find` (Mission Lab) | buyer | Admin → **Leads** |
+| `/contact` | buyer | Admin → **Leads** |
+| Listing inquiry | buyer | Admin → **Leads** |
+
+**Command** = overview / cheat sheet. **Leads** = the actual CRM table.

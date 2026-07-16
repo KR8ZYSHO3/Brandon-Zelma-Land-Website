@@ -2,6 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { AdminNav } from "@/components/admin/AdminNav";
+import {
+  getLeadsStorageLabel,
+  leadsAreDurable,
+} from "@/lib/leads-store";
 
 const LAYERS = [
   {
@@ -44,6 +48,8 @@ const LAYERS = [
 
 export default async function AdminScalePage() {
   if (!(await isAdminAuthenticated())) redirect("/admin/login");
+  const durable = leadsAreDurable();
+  const storageLabel = getLeadsStorageLabel();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -57,6 +63,65 @@ export default async function AdminScalePage() {
         market intel → marketing → education → AI. You scale by adding people
         and markets to the same machine — not by reinventing tools every year.
       </p>
+
+      <section
+        className={`mt-8 rounded-2xl border px-5 py-5 ${
+          durable
+            ? "border-moss/40 bg-limestone/40"
+            : "border-blaze/40 bg-[var(--danger-soft)]"
+        }`}
+      >
+        <h2 className="font-display text-lg font-semibold text-forest">
+          Keep leads permanently (do this first)
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          Current storage:{" "}
+          <strong className="text-charcoal">{storageLabel}</strong>
+        </p>
+        {!durable ? (
+          <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-charcoal/90">
+            <li>
+              Open{" "}
+              <a
+                href="https://console.upstash.com"
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-forest underline"
+              >
+                console.upstash.com
+              </a>{" "}
+              (free) → Create database → Redis
+            </li>
+            <li>
+              Open the DB → <strong>REST API</strong> tab → copy{" "}
+              <code className="text-xs">UPSTASH_REDIS_REST_URL</code> and{" "}
+              <code className="text-xs">UPSTASH_REDIS_REST_TOKEN</code>
+            </li>
+            <li>
+              Vercel dashboard → your project →{" "}
+              <strong>Settings → Environment Variables</strong> → paste both
+              (Production + Preview) → Save
+            </li>
+            <li>
+              Vercel → <strong>Deployments → Redeploy</strong> latest
+            </li>
+            <li>
+              Fill Sell or Buy once → open{" "}
+              <Link href="/admin/leads" className="font-semibold text-forest underline">
+                Leads
+              </Link>
+            </li>
+          </ol>
+        ) : (
+          <p className="mt-2 text-sm text-muted">
+            Buy/Sell forms write here permanently. Open{" "}
+            <Link href="/admin/leads" className="font-semibold text-forest underline">
+              Leads
+            </Link>{" "}
+            after each form fill.
+          </p>
+        )}
+      </section>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         {[
@@ -94,7 +159,8 @@ export default async function AdminScalePage() {
         </h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted">
           <li>
-            Swap file leads → Supabase/Postgres when multi-device / team needed
+            Leads: Upstash Redis now (env vars); later Supabase/Postgres for
+            multi-agent CRM
           </li>
           <li>Multi-tenant agents: role column + RLS on leads/listings</li>
           <li>County SEO pages are template-driven — add states as data</li>

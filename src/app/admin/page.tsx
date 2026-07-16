@@ -6,10 +6,15 @@ import { AdminNav } from "@/components/admin/AdminNav";
 import { AdminGuide } from "@/components/admin/AdminGuide";
 import { formatPrice } from "@/lib/data/listings";
 import { MISSION_STATEMENT } from "@/lib/data/business-plan";
+import { leadsAreDurable, getLeadsStorageLabel } from "@/lib/leads-store";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   if (!(await isAdminAuthenticated())) redirect("/admin/login");
   const s = await getDashboardStats();
+  const durable = leadsAreDurable();
+  const storageLabel = getLeadsStorageLabel();
 
   const cards = [
     { label: "Total leads", value: String(s.totalLeads), tip: "All form fills ever" },
@@ -60,6 +65,32 @@ export default async function AdminDashboardPage() {
           Tip: read the guide below once, then ignore it until you need it
         </p>
       </div>
+
+      {!durable && (
+        <div className="mt-6 rounded-2xl border border-blaze/40 bg-[var(--danger-soft)] px-4 py-4 text-sm">
+          <p className="font-semibold text-blaze">
+            Buy/Sell form answers are not sticking in admin yet
+          </p>
+          <p className="mt-1 text-muted">
+            Storage: {storageLabel}. Forms succeed for the customer, but admin
+            often can’t see them until free Redis is connected.{" "}
+            <Link
+              href="/admin/leads"
+              className="font-semibold text-forest underline"
+            >
+              Open Leads
+            </Link>{" "}
+            or{" "}
+            <Link
+              href="/admin/scale"
+              className="font-semibold text-forest underline"
+            >
+              Scale → Keep leads permanently
+            </Link>
+            .
+          </p>
+        </div>
+      )}
 
       {/* HOW IT WORKS — first so Brandon isn't dumped into data */}
       <div className="mt-8">

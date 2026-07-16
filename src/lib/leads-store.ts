@@ -1,13 +1,94 @@
 import type { Lead } from "@/lib/types";
 
 /**
- * Lead storage:
- * - Local/dev: writes data/leads.json when filesystem is writable
- * - Vercel/serverless: in-memory (resets on cold start);
- *   upgrade to Supabase/Vercel KV later for production persistence
+ * Lead storage (shared across form POST and admin GET):
+ * 1. Upstash Redis — if UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN set (Vercel)
+ * 2. Local file data/leads.json — when not on Vercel and disk is writable
+ * 3. In-memory only — demo fallback (does NOT work reliably on Vercel serverless)
  */
 
+const REDIS_KEY = "bzl:leads";
 const globalStore = globalThis as unknown as { __bzlLeads?: Lead[] };
+
+export type LeadsStorageMode = "redis" | "file" | "memory";
+
+export function getLeadsStorageMode(): LeadsStorageMode {
+  if (hasRedis()) return "redis";
+  if (canUseFs()) return "file";
+  return "memory";
+}
+
+export function getLeadsStorageLabel(): string {
+  switch (getLeadsStorageMode()) {
+    case "redis":
+      return "Permanent (Upstash Redis)";
+    case "file":
+      return "Local file (data/leads.json)";
+    default:
+      return "Temporary memory only — will not stick on Vercel";
+  }
+}
+
+export function leadsAreDurable(): boolean {
+  return getLeadsStorageMode() !== "memory";
+}
+
+function hasRedis(): boolean {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL?.trim() &&
+      process.env.UPSTASH_REDIS_REST_TOKEN?.trim(),
+  );
+}
+
+function redisUrl(): string {
+  return process.env.UPSTASH_REDIS_REST_URL!.replace(/\/$/, "");
+}
+
+function redisToken(): string {
+  return process.env.UPSTASH_REDIS_REST_TOKEN!;
+}
+
+async function redisCommand<T>(command: (string | number)[]): Promise<T> {
+  const res = await fetch(redisUrl(), {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${redisToken()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(command),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Redis ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { result: T };
+  return data.result;
+}
+
+async function readFromRedis(): Promise<Lead[] | null> {
+  if (!hasRedis()) return null;
+  try {
+    const raw = await redisCommand<string | null>(["GET", REDIS_KEY]);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Lead[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error("[leads] Redis read failed", e);
+    return null;
+  }
+}
+
+async function writeToRedis(leads: Lead[]): Promise<boolean> {
+  if (!hasRedis()) return false;
+  try {
+    await redisCommand(["SET", REDIS_KEY, JSON.stringify(leads)]);
+    return true;
+  } catch (e) {
+    console.error("[leads] Redis write failed", e);
+    return false;
+  }
+}
 
 function memory(): Lead[] {
   if (!globalStore.__bzlLeads) globalStore.__bzlLeads = [];
@@ -49,17 +130,25 @@ async function writeToFs(leads: Lead[]): Promise<void> {
 }
 
 export async function readLeads(): Promise<Lead[]> {
+  const fromRedis = await readFromRedis();
+  if (fromRedis) {
+    globalStore.__bzlLeads = fromRedis;
+    return fromRedis;
+  }
+
   const fromDisk = await readFromFs();
   if (fromDisk) {
     globalStore.__bzlLeads = fromDisk;
     return fromDisk;
   }
+
   return memory();
 }
 
 export async function writeLeads(leads: Lead[]): Promise<void> {
   globalStore.__bzlLeads = leads;
-  await writeToFs(leads);
+  const ok = await writeToRedis(leads);
+  if (!ok) await writeToFs(leads);
 }
 
 export async function addLead(
@@ -74,6 +163,8 @@ export async function addLead(
     updatedAt: now,
   };
   leads.unshift(full);
+  // Cap memory growth in ephemeral mode
+  if (leads.length > 500) leads.length = 500;
   await writeLeads(leads);
   return full;
 }

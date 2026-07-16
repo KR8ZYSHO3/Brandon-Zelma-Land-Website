@@ -1,20 +1,84 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { readLeads } from "@/lib/leads-store";
+import {
+  getLeadsStorageLabel,
+  getLeadsStorageMode,
+  leadsAreDurable,
+  readLeads,
+} from "@/lib/leads-store";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { scoreLabel } from "@/lib/scoring";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminLeadsPage() {
   if (!(await isAdminAuthenticated())) redirect("/admin/login");
   const leads = await readLeads();
+  const durable = leadsAreDurable();
+  const mode = getLeadsStorageMode();
+  const storageLabel = getLeadsStorageLabel();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <AdminNav />
       <h1 className="font-display text-3xl font-semibold text-forest">Leads</h1>
       <p className="mt-1 text-sm text-muted">
-        {leads.length} total · stored in <code>data/leads.json</code>
+        {leads.length} total · storage: {storageLabel}
       </p>
+
+      {!durable && (
+        <div className="mt-4 rounded-2xl border border-blaze/40 bg-[var(--danger-soft)] px-4 py-4 text-sm text-charcoal">
+          <p className="font-semibold text-blaze">
+            Why buy/sell forms don’t show up here yet
+          </p>
+          <p className="mt-2 leading-relaxed text-muted">
+            On free Vercel hosting, each form submit can land on a different
+            temporary server. Those servers don’t share memory — so the customer
+            sees “You’re on Brandon’s list,” but{" "}
+            <strong className="text-charcoal">Admin → Leads</strong> often
+            stays empty.
+          </p>
+          <p className="mt-2 leading-relaxed text-muted">
+            <strong className="text-charcoal">Fix (free, ~3 minutes):</strong>{" "}
+            create an Upstash Redis database and add two environment variables
+            in Vercel. Steps are in{" "}
+            <Link href="/admin/scale" className="font-semibold text-forest underline">
+              Scale
+            </Link>{" "}
+            and in the project <code className="text-xs">DEPLOY.md</code>{" "}
+            (“Keep leads permanently”).
+          </p>
+          <ol className="mt-3 list-decimal space-y-1 pl-5 text-muted">
+            <li>
+              Go to{" "}
+              <a
+                href="https://console.upstash.com"
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-forest underline"
+              >
+                console.upstash.com
+              </a>{" "}
+              → create free Redis DB
+            </li>
+            <li>Copy REST URL + REST TOKEN</li>
+            <li>
+              Vercel → Project → Settings → Environment Variables → add{" "}
+              <code className="text-xs">UPSTASH_REDIS_REST_URL</code> and{" "}
+              <code className="text-xs">UPSTASH_REDIS_REST_TOKEN</code>
+            </li>
+            <li>Redeploy → fill Sell/Buy again → they appear here permanently</li>
+          </ol>
+        </div>
+      )}
+
+      {durable && mode === "redis" && (
+        <div className="mt-4 rounded-2xl border border-moss/40 bg-limestone/50 px-4 py-3 text-sm text-muted">
+          Leads are saved in permanent storage. Buy + Sell + Contact all land in
+          this table.
+        </div>
+      )}
 
       <div className="mt-8 overflow-x-auto rounded-2xl border border-line bg-paper">
         <table className="min-w-full text-left text-sm">
@@ -34,7 +98,9 @@ export default async function AdminLeadsPage() {
             {leads.length === 0 && (
               <tr>
                 <td colSpan={8} className="px-3 py-8 text-center text-muted">
-                  No leads yet. Submit Mission Lab or Sell forms on the public site.
+                  {durable
+                    ? "No leads yet. Submit Mission Lab or Sell on the public site, then refresh this page."
+                    : "Empty for now — enable permanent storage above, then re-test a form."}
                 </td>
               </tr>
             )}
@@ -65,7 +131,9 @@ export default async function AdminLeadsPage() {
                   <td className="px-3 py-3 text-xs">
                     <div>{l.email}</div>
                     <div>{l.phone}</div>
-                    {l.mission && <div className="text-moss">mission: {l.mission}</div>}
+                    {l.mission && (
+                      <div className="text-moss">mission: {l.mission}</div>
+                    )}
                     {l.counties?.length > 0 && (
                       <div className="text-muted">{l.counties.join(", ")}</div>
                     )}

@@ -156,20 +156,25 @@ export function AdminGuide() {
         <summary>How leads flow (Buy / Sell → you)</summary>
         <div className="mt-3 space-y-2 text-sm text-muted leading-relaxed">
           <p>
-            1. Someone uses Mission Lab, Sell readiness, Contact, or a listing
-            form on the public site.
+            1. Someone uses Mission Lab (buy), Sell, Contact, or a listing form
+            on the public site.
           </p>
           <p>
-            2. It saves into <strong className="text-charcoal">Leads</strong>{" "}
-            with a score (hot / warm / cool).
+            2. That goes to{" "}
+            <strong className="text-charcoal">Admin → Leads</strong> (top nav
+            pill labeled Leads — not Command). Each row has name, email, phone,
+            type (buyer/seller), score, notes.
           </p>
           <p>
-            3. You call/text. Update stage in your head or notes (full stage
-            editor can expand later).
+            3. You call/text hot leads same day. Command is only the daily
+            overview + this cheat sheet.
           </p>
           <p>
-            4. Command center shows sources and which counties people want — use
-            that to decide what land to list next.
+            4. <strong className="text-charcoal">Important on Vercel:</strong>{" "}
+            without free Upstash Redis env vars, leads sit in temporary server
+            memory and often never show in admin. Open{" "}
+            <strong className="text-charcoal">Leads</strong> for the red box
+            setup steps, or see DEPLOY.md.
           </p>
         </div>
       </details>
